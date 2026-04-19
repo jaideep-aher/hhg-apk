@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,6 +34,7 @@ import com.hhg.farmers.ui.components.AppTopBar
 import com.hhg.farmers.ui.components.EmptyState
 import com.hhg.farmers.ui.components.ErrorState
 import com.hhg.farmers.ui.components.LoadingState
+import com.hhg.farmers.ui.theme.HhgTheme
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -149,6 +151,28 @@ private fun RateRow(rate: VendorRate) {
                 )
             }
             HorizontalDivider()
+        }
+    }
+}
+
+/* ----------------------------- Previews ----------------------------- */
+
+private val previewRates = listOf(
+    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "कांदा", highestRate = 32.5),
+    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "टोमॅटो", highestRate = 45.0),
+    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "बटाटा", highestRate = 28.75),
+    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "मिरची", highestRate = 52.0),
+    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "कोथिंबीर", highestRate = 38.25),
+    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "मेथी", highestRate = 41.5),
+    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "पालक", highestRate = 35.0)
+)
+
+@Preview(name = "Hundekari rates", showBackground = true, locale = "mr")
+@Composable
+private fun HundekariRatesPreview() {
+    HhgTheme {
+        Scaffold(topBar = { AppTopBar(onBack = {}) }) { padding ->
+            RatesTable(previewRates, modifier = Modifier.padding(padding))
         }
     }
 }

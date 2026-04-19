@@ -6,6 +6,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.util.DisplayMetrics
 import com.hhg.farmers.BuildConfig
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
@@ -16,7 +17,7 @@ import javax.inject.Singleton
  * Everything here is cheap and permission-free.
  */
 @Singleton
-class DeviceInfoCollector @Inject constructor(private val context: Context) {
+class DeviceInfoCollector @Inject constructor(@ApplicationContext private val context: Context) {
 
     fun snapshot(): DeviceSnapshot {
         val dm = context.resources.displayMetrics

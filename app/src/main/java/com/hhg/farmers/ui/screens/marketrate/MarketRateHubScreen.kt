@@ -28,12 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hhg.farmers.R
 import com.hhg.farmers.ui.components.AppTopBar
 import com.hhg.farmers.ui.theme.HhgOrange100
 import com.hhg.farmers.ui.theme.HhgOrange500
 import com.hhg.farmers.ui.theme.HhgOrange600
+import com.hhg.farmers.ui.theme.HhgTheme
 
 /**
  * Screen 3 — Market rate hub.
@@ -124,5 +126,15 @@ private fun HubCard(
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = accent)
             }
         }
+    }
+}
+
+/* ----------------------------- Previews ----------------------------- */
+
+@Preview(name = "Market hub", showBackground = true, locale = "mr")
+@Composable
+private fun MarketRateHubPreview() {
+    HhgTheme {
+        MarketRateHubScreen(onBack = {}, onHundekariClick = {}, onOtherMarketsClick = {})
     }
 }

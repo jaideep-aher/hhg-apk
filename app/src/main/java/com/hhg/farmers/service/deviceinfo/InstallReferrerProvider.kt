@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,7 +15,7 @@ import kotlin.coroutines.resume
  * Tells us how a user got the app — organic search, campaign URL, or another app deep-link.
  */
 @Singleton
-class InstallReferrerProvider @Inject constructor(private val context: Context) {
+class InstallReferrerProvider @Inject constructor(@ApplicationContext private val context: Context) {
 
     suspend fun fetch(): InstallReferrerInfo? = suspendCancellableCoroutine { cont ->
         val client = InstallReferrerClient.newBuilder(context).build()

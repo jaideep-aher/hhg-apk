@@ -8,6 +8,7 @@ import android.graphics.pdf.PdfDocument
 import androidx.core.content.FileProvider
 import com.hhg.farmers.R
 import com.hhg.farmers.data.model.FarmerDataPage
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.NumberFormat
@@ -22,7 +23,7 @@ import javax.inject.Singleton
  * (monochrome, text-only) to keep APK size down and generation fast on 2018-era phones.
  */
 @Singleton
-class PdfExporter @Inject constructor(private val context: Context) {
+class PdfExporter @Inject constructor(@ApplicationContext private val context: Context) {
 
     fun shareFarmerPatti(page: FarmerDataPage) {
         val file = renderPdf(page)

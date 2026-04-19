@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -19,7 +20,7 @@ private val Context.dataStore by preferencesDataStore(name = "hhg_session")
  * we store additional keys (access_token, refresh_token, expiry) without changing callers.
  */
 @Singleton
-class SessionStore @Inject constructor(private val context: Context) {
+class SessionStore @Inject constructor(@ApplicationContext private val context: Context) {
 
     private object Keys {
         val FARMER_ID = stringPreferencesKey("farmer_id")

@@ -7,6 +7,7 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.hhg.farmers.BuildConfig
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,7 +25,7 @@ import javax.inject.Singleton
  * Remote Config / REST call when the backend is live.
  */
 @Singleton
-class UpdateManager @Inject constructor(private val context: Context) {
+class UpdateManager @Inject constructor(@ApplicationContext private val context: Context) {
 
     private val manager = AppUpdateManagerFactory.create(context)
 

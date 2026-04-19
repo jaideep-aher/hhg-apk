@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,6 +55,7 @@ import com.hhg.farmers.ui.components.LoadingState
 import com.hhg.farmers.ui.theme.HhgOrange100
 import com.hhg.farmers.ui.theme.HhgOrange500
 import com.hhg.farmers.ui.theme.HhgOrange600
+import com.hhg.farmers.ui.theme.HhgTheme
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -300,5 +302,58 @@ private fun PattiStat(label: String, value: String) {
     Column {
         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+/* ----------------------------- Previews ----------------------------- */
+
+private val previewFarmer = Farmer(
+    farmerid = 1001,
+    uid = "55555",
+    farmername = "रामराव पाटील",
+    mobilenumber = "9876543210",
+    farmeraddress = "मु. पो. साकूर, ता. संगमनेर, जि. अहमदनगर",
+    status = "ACTIVE"
+)
+
+private val previewEntries = listOf(
+    PattiEntry(
+        entryid = 1, farmerid = 1001, date = "2026-04-19",
+        vendorname = "शिवाजी ट्रेडर्स", quantity = 25.0, weight = 420.0,
+        rate = 32.5, item = "कांदा", payable = 13650.0, paid = null, paiddate = null
+    ),
+    PattiEntry(
+        entryid = 2, farmerid = 1001, date = "2026-04-18",
+        vendorname = "अशोक ट्रेडिंग", quantity = 18.0, weight = 295.0,
+        rate = 45.0, item = "टोमॅटो", payable = 13275.0, paid = 13275.0, paiddate = "2026-04-21"
+    ),
+    PattiEntry(
+        entryid = 3, farmerid = 1001, date = "2026-04-17",
+        vendorname = "कृष्णा ट्रेडर्स", quantity = 30.0, weight = 512.0,
+        rate = 28.0, item = "बटाटा", payable = 14336.0, paid = 14336.0, paiddate = "2026-04-20"
+    )
+)
+
+private val previewTotals = PattiTotals(
+    totalPayable = 41261.0,
+    totalQuantity = 73.0,
+    totalWeight = 1227.0
+)
+
+@Preview(name = "Farmer dashboard", showBackground = true, heightDp = 900, locale = "mr")
+@Composable
+private fun FarmerDashboardPreview() {
+    HhgTheme {
+        Scaffold(topBar = { AppTopBar(onBack = {}) }) { padding ->
+            DashboardContent(
+                farmer = previewFarmer,
+                entries = previewEntries,
+                totals = previewTotals,
+                onOpenMarketRates = {},
+                onOpenAiTrend = {},
+                onShare = {},
+                modifier = Modifier.padding(padding)
+            )
+        }
     }
 }

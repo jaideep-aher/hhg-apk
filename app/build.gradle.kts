@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.lifecycle.process)
     implementation(libs.navigation.compose)
     implementation(libs.core.ktx)
     implementation(libs.ui.text.google.fonts)
@@ -152,6 +153,9 @@ dependencies {
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
 
-    // Markdown rendering (for AI Market Trend narratives)
-    implementation(libs.compose.markdown)
+    // Markdown rendering (for AI Market Trend narratives) — lives on JitPack.
+    // Re-enable when the AI Trend screen is built:
+    //   1. Add `maven(url = "https://jitpack.io")` to settings.gradle.kts dependencyResolutionManagement
+    //   2. Uncomment the line below
+    // implementation(libs.compose.markdown)
 }

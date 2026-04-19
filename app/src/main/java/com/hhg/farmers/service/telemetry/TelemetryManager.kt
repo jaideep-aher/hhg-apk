@@ -13,6 +13,7 @@ import com.hhg.farmers.service.deviceinfo.NetworkTypeProvider
 import com.hhg.farmers.service.location.LocationFix
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapter
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,9 +43,10 @@ import javax.inject.Singleton
  *
  * Scaling note: to add a new event, call `track("your_event", props)`. Anywhere. No schema change.
  */
+@OptIn(ExperimentalStdlibApi::class)
 @Singleton
 class TelemetryManager @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val db: TelemetryDb,
     private val session: SessionStore,
     private val device: DeviceInfoCollector,
@@ -52,7 +54,7 @@ class TelemetryManager @Inject constructor(
     private val installReferrer: InstallReferrerProvider,
     moshi: Moshi
 ) {
-    @Suppress("OPT_IN_USAGE") private val mapAdapter = moshi.adapter<Map<String, Any?>>()
+    private val mapAdapter = moshi.adapter<Map<String, Any?>>()
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val sessionId = UUID.randomUUID().toString()

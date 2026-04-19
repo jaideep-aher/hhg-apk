@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +27,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class LocationProvider @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     private val client by lazy { LocationServices.getFusedLocationProviderClient(context) }
 

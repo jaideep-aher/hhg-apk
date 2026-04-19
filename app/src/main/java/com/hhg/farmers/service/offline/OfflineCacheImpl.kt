@@ -6,13 +6,13 @@ import com.squareup.moshi.adapter
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@OptIn(ExperimentalStdlibApi::class)
 @Singleton
 class OfflineCacheImpl @Inject constructor(
     private val db: OfflineCacheDb,
     moshi: Moshi
 ) : OfflineCache {
 
-    @Suppress("OPT_IN_USAGE")
     private val adapter = moshi.adapter<FarmerDataPage>()
 
     override suspend fun readPatti(uid: String): FarmerDataPage? = runCatching {

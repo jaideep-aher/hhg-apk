@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/mipmap_ic_launcher_round.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/mipmap/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/mipmap_ic_launcher.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/mipmap/ic_launcher.xml"
+    },
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/xml_backup_rules.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/xml_data_extraction_rules.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/xml_file_paths.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/xml/file_paths.xml"
+    },
+    {
+        "merged": "com.hhg.farmers.app-debug-84:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.hhg.farmers.app-main-86:/mipmap-anydpi-v26/ic_launcher.xml"
+    }
+]

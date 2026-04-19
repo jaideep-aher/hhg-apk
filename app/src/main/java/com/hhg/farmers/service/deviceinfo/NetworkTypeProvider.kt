@@ -3,6 +3,7 @@ package com.hhg.farmers.service.deviceinfo
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -11,7 +12,7 @@ import javax.inject.Singleton
  * Does NOT require READ_PHONE_STATE or any runtime permission.
  */
 @Singleton
-class NetworkTypeProvider @Inject constructor(private val context: Context) {
+class NetworkTypeProvider @Inject constructor(@ApplicationContext private val context: Context) {
 
     fun currentNetwork(): String {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
