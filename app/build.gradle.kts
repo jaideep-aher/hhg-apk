@@ -55,6 +55,9 @@ android {
             )
             buildConfigField("String", "API_BASE_URL", "\"https://hhgfarmers.vercel.app/api/\"")
             buildConfigField("Boolean", "ENABLE_MOCK_REPO", "true")
+            // Sign with the default debug keystore so `assembleRelease` produces an installable APK
+            // without repo secrets (GitHub/sideload). Use a proper upload key for Play Console.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

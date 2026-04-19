@@ -11,7 +11,7 @@ Public branch on GitHub: [jaideep-aher/hhg-apk — `Jai-intial`](https://github.
 | Area | Description |
 |------|-------------|
 | `app/` | Android application module (`com.hhg.farmers`), UI, networking, Room, WorkManager, Hilt DI |
-| `apk1/` | **Prebuilt debug APK** for quick install (`hhg-farmers-debug.apk`) — see [Prebuilt APK](#prebuilt-apk) |
+| `apk1/` | **Prebuilt release APK** for sideload install (`hhg-farmers.apk`) — see [Prebuilt APK](#prebuilt-apk) |
 | `gradle/` | Gradle wrapper and version catalog |
 
 The app targets Indian farmers with **Marathi-first** strings (`values-mr/`) and English fallbacks (`values/`).
@@ -20,23 +20,38 @@ The app targets Indian farmers with **Marathi-first** strings (`values-mr/`) and
 
 ## Prebuilt APK
 
-### Recommended location (this repo)
+The file in **`apk1/hhg-farmers.apk`** is a **release** build (R8 minify + resource shrinking, universal APK with all CPU ABIs). It is signed and can be installed on **any device that meets the minimum OS version**, the same way you install apps outside the Play Store.
 
-- **Path:** `apk1/hhg-farmers-debug.apk`
-- **Variant:** `debug`
-- **Application ID:** `com.hhg.farmers.debug`
-- **Version:** `0.1.0-debug` (versionCode `1`), minSdk **24**, target/compile **35**
+### What you get
 
-Install on a device: enable **Install unknown apps** for your file manager or `adb install apk1/hhg-farmers-debug.apk`.
+| | |
+|--|--|
+| **Path** | `apk1/hhg-farmers.apk` |
+| **Build type** | `release` (optimized, not a debuggable dev build) |
+| **Application ID** | `com.hhg.farmers` |
+| **Version** | `0.1.0` (versionCode `1`) |
+| **Requires Android** | **7.0 (API 24) or newer** — typical phones and tablets from ~2016 onward |
+| **Signing** | Release pipeline uses the **default debug keystore** so the project can ship an installable APK from GitHub without checking in production keys. For **Google Play**, replace this with your **upload key** in `app/build.gradle.kts`. |
 
-### Also present on the `Jai-intial` branch (Git)
+### How to install
 
-The same debug artifact is currently also tracked under Gradle output paths (not ideal for browsing, but it confirms a debug APK was committed):
+1. On the phone: **Settings → Security / Apps → Install unknown apps** (wording varies by manufacturer) and allow your browser or Files app to install APKs.
+2. Download **`hhg-farmers.apk`** from this repo (Raw or Releases), open it, and confirm install.
 
-- `app/build/outputs/apk/debug/app-debug.apk`
-- `app/build/intermediates/apk/debug/app-debug.apk`
+Or with USB debugging:
 
-For sharing or documentation, prefer the top-level **`apk1/`** copy.
+```bash
+adb install apk1/hhg-farmers.apk
+```
+
+This is a normal Android install package: sideloading is required because the app is not (yet) distributed through the Play Store.
+
+### Regenerate the distributable from source
+
+```bash
+./gradlew :app:assembleRelease
+cp app/build/outputs/apk/release/app-release.apk apk1/hhg-farmers.apk
+```
 
 ---
 
@@ -120,14 +135,14 @@ sdk.dir=/path/to/Android/sdk
 # Debug APK (installable test build; applicationId suffix .debug)
 ./gradlew :app:assembleDebug
 
-# Release bundle/APK (needs signing config for real store upload — not committed here)
+# Release APK (signed for sideload — see signingConfig in app/build.gradle.kts)
 ./gradlew :app:assembleRelease
 ```
 
 Outputs:
 
-- Debug: `app/build/outputs/apk/debug/app-debug.apk`
-- After a successful build you can copy the debug APK to `apk1/` if you want a named distributable alongside the repo.
+- Debug: `app/build/outputs/apk/debug/app-debug.apk` (`com.hhg.farmers.debug`)
+- Release: `app/build/outputs/apk/release/app-release.apk` (`com.hhg.farmers`) — copy to `apk1/hhg-farmers.apk` for the repo distributable.
 
 > **Note:** Building requires a **JDK 17** runtime. If `./gradlew` picks Java 8, set `JAVA_HOME` to a JDK 17 installation before running Gradle.
 
