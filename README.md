@@ -11,7 +11,7 @@ Public branch on GitHub: [jaideep-aher/hhg-apk — `Jai-intial`](https://github.
 | Area | Description |
 |------|-------------|
 | `app/` | Android application module (`com.hhg.farmers`), UI, networking, Room, WorkManager, Hilt DI |
-| `apk/` | **Prebuilt debug APK** for quick install (`hhg-farmers-debug.apk`) — see [Prebuilt APK](#prebuilt-apk) |
+| `apk1/` | **Prebuilt debug APK** for quick install (`hhg-farmers-debug.apk`) — see [Prebuilt APK](#prebuilt-apk) |
 | `gradle/` | Gradle wrapper and version catalog |
 
 The app targets Indian farmers with **Marathi-first** strings (`values-mr/`) and English fallbacks (`values/`).
@@ -22,12 +22,12 @@ The app targets Indian farmers with **Marathi-first** strings (`values-mr/`) and
 
 ### Recommended location (this repo)
 
-- **Path:** `apk/hhg-farmers-debug.apk`
+- **Path:** `apk1/hhg-farmers-debug.apk`
 - **Variant:** `debug`
 - **Application ID:** `com.hhg.farmers.debug`
 - **Version:** `0.1.0-debug` (versionCode `1`), minSdk **24**, target/compile **35**
 
-Install on a device: enable **Install unknown apps** for your file manager or `adb install apk/hhg-farmers-debug.apk`.
+Install on a device: enable **Install unknown apps** for your file manager or `adb install apk1/hhg-farmers-debug.apk`.
 
 ### Also present on the `Jai-intial` branch (Git)
 
@@ -36,7 +36,7 @@ The same debug artifact is currently also tracked under Gradle output paths (not
 - `app/build/outputs/apk/debug/app-debug.apk`
 - `app/build/intermediates/apk/debug/app-debug.apk`
 
-For sharing or documentation, prefer the top-level **`apk/`** copy.
+For sharing or documentation, prefer the top-level **`apk1/`** copy.
 
 ---
 
@@ -127,7 +127,7 @@ sdk.dir=/path/to/Android/sdk
 Outputs:
 
 - Debug: `app/build/outputs/apk/debug/app-debug.apk`
-- After a successful build you can copy the debug APK to `apk/` if you want a named distributable alongside the repo.
+- After a successful build you can copy the debug APK to `apk1/` if you want a named distributable alongside the repo.
 
 > **Note:** Building requires a **JDK 17** runtime. If `./gradlew` picks Java 8, set `JAVA_HOME` to a JDK 17 installation before running Gradle.
 
