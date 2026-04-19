@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand palette — orange-500 from Tailwind, matches the web's signature color -->
+    <color name="hhg_orange_500">#F97316</color>
+    <color name="hhg_orange_600">#EA580C</color>
+    <color name="hhg_orange_100">#FFEDD5</color>
+
+    <!-- Notice backgrounds from the web -->
+    <color name="notice_purple_100">#F3E8FF</color>
+    <color name="notice_green_100">#DCFCE7</color>
+    <color name="notice_blue_100">#DBEAFE</color>
+    <color name="notice_orange_100">#FFEDD5</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

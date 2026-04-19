@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default (English) string resources — fallback locale.
+  Marathi strings live in values-mr/strings.xml and are the primary user language.
+  Hindi (values-hi/) can be added later without any code change.
+-->
+<resources>
+    <string name="app_name">HHG Farmers</string>
+    <string name="app_name_mr">हनुमान हुंडेकरी</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_market_rate">Market Rate</string>
+    <string name="nav_ai_trend">AI Market Trend</string>
+    <string name="nav_seeds">Seeds</string>
+    <string name="nav_local_vyapari">Local Vyapari</string>
+    <string name="nav_about">About</string>
+    <string name="nav_logout">Log out</string>
+
+    <!-- Home / login -->
+    <string name="home_search_title">Search your account</string>
+    <string name="home_aadhaar_hint">Enter last 5 digits of Aadhaar</string>
+    <string name="home_search_button">Search</string>
+    <string name="home_notices_title">Notices</string>
+    <string name="home_ai_trend_cta">AI Market Trend</string>
+    <string name="home_invalid_aadhaar">Please enter a valid 5-digit Aadhaar number.</string>
+    <string name="home_not_found">Farmer not found. Please enter a valid Aadhaar number.</string>
+    <string name="home_checking">Valid number. Checking if data exists&#8230;</string>
+    <string name="home_error_generic">Something went wrong. Please try again.</string>
+
+    <!-- Farmer dashboard -->
+    <string name="farmer_aadhaar_label">Aadhaar No.</string>
+    <string name="farmer_mobile_label">Mobile No.</string>
+    <string name="farmer_address_label">Address</string>
+    <string name="farmer_no_mobile_info">Contact the HHG manager to update your mobile number.</string>
+    <string name="farmer_no_address_info">Contact the HHG manager to update your address.</string>
+    <string name="farmer_daily_market_cta">Daily Market Rates</string>
+    <string name="farmer_ai_trend_cta">AI Market Trend (2024-25)</string>
+    <string name="farmer_patti_title">Patti / Records</string>
+    <string name="farmer_patti_subtitle">Showing records for the selected date range</string>
+    <string name="farmer_no_data">No data found</string>
+    <string name="farmer_back">Back</string>
+    <string name="farmer_share_patti">Share patti</string>
+
+    <!-- Market rate -->
+    <string name="market_hub_hundekari_title">Hanuman Hundekari rates</string>
+    <string name="market_hub_hundekari_subtitle">Rates as per Mumbai broker</string>
+    <string name="market_hub_hundekari_cta">View Hundekari rates</string>
+    <string name="market_hub_other_title">Other market rates</string>
+    <string name="market_hub_other_subtitle">Pune, Mumbai and other markets</string>
+    <string name="market_hub_other_cta">View other market rates</string>
+    <string name="hundekari_today_title">Today\'s Hundekari rates</string>
+    <string name="hundekari_today_subtitle">Highest rate per item, updated today</string>
+    <string name="rate_item_label">Item</string>
+    <string name="rate_value_label">Rate (₹)</string>
+    <string name="rate_no_data">No rates available for today yet.</string>
+
+    <!-- Generic -->
+    <string name="loading">Loading&#8230;</string>
+    <string name="retry">Retry</string>
+    <string name="coming_soon">Coming soon</string>
+    <string name="version_label">Version</string>
+
+    <!-- Permissions / location -->
+    <string name="location_permission_rationale">Location helps us show you relevant market rates and verify your area.</string>
+
+    <!-- Share -->
+    <string name="share_patti_subject">My HHG patti</string>
+</resources>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Marathi (mr) — primary user language.
+  Copy is pulled from the live website to preserve voice and familiarity.
+-->
+<resources>
+    <string name="app_name">हनुमान हुंडेकरी</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">मुख्यपृष्ठ</string>
+    <string name="nav_market_rate">मार्केट भाव</string>
+    <string name="nav_ai_trend">AI मार्केट ट्रेंड</string>
+    <string name="nav_seeds">बियाणे</string>
+    <string name="nav_local_vyapari">स्थानिक व्यापारी</string>
+    <string name="nav_about">आमच्याबद्दल</string>
+    <string name="nav_logout">बाहेर पडा</string>
+
+    <!-- Home / login -->
+    <string name="home_search_title">आपले खाते शोधा</string>
+    <string name="home_aadhaar_hint">आधारचे शेवटचे ५ अंक टाका</string>
+    <string name="home_search_button">शोधा</string>
+    <string name="home_notices_title">विशेष सूचना</string>
+    <string name="home_ai_trend_cta">AI मार्केट ट्रेंड</string>
+    <string name="home_invalid_aadhaar">कृपया वैध ५ अंकी आधार क्रमांक टाका.</string>
+    <string name="home_not_found">शेतकरी आढळला नाही. कृपया वैध आधार क्रमांक टाका.</string>
+    <string name="home_checking">वैध आधार क्रमांक. डेटा अस्तित्वात आहे का ते तपासत आहोत…</string>
+    <string name="home_error_generic">काही चूक झाली आहे. कृपया पुन्हा प्रयत्न करा.</string>
+
+    <!-- Farmer dashboard -->
+    <string name="farmer_aadhaar_label">आधार नं</string>
+    <string name="farmer_mobile_label">मोबाईल नं</string>
+    <string name="farmer_address_label">पत्ता</string>
+    <string name="farmer_no_mobile_info">मोबाईल नं अपडेट करण्यासाठी HHG व्यवस्थापकाशी संपर्क साधा</string>
+    <string name="farmer_no_address_info">पत्ता अपडेट करण्यासाठी HHG व्यवस्थापकाशी संपर्क साधा</string>
+    <string name="farmer_daily_market_cta">दैनिक मार्केट भाव</string>
+    <string name="farmer_ai_trend_cta">AI मार्केट ट्रेंड (2024-25)</string>
+    <string name="farmer_patti_title">पट्ट्या / नोंदी पहा</string>
+    <string name="farmer_patti_subtitle">निवडलेल्या तारखेच्या नोंदी दर्शवत आहे</string>
+    <string name="farmer_no_data">कोणताही डेटा सापडला नाही</string>
+    <string name="farmer_back">मागे जा</string>
+    <string name="farmer_share_patti">पट्टी शेअर करा</string>
+
+    <!-- Market rate -->
+    <string name="market_hub_hundekari_title">हनुमान हुंडेकरी भाव पहा</string>
+    <string name="market_hub_hundekari_subtitle">मुंबई दलाल प्रमाणे भाव</string>
+    <string name="market_hub_hundekari_cta">हुंडेकरी भाव पहा</string>
+    <string name="market_hub_other_title">इतर मार्केट भाव पहा</string>
+    <string name="market_hub_other_subtitle">पुणे, मुंबई आणि इतर मार्केट भाव</string>
+    <string name="market_hub_other_cta">इतर मार्केट भाव पहा</string>
+    <string name="hundekari_today_title">आजचे हुंडेकरी भाव</string>
+    <string name="hundekari_today_subtitle">आजचे प्रत्येक मालाचे उच्चतम भाव</string>
+    <string name="rate_item_label">माल</string>
+    <string name="rate_value_label">भाव (₹)</string>
+    <string name="rate_no_data">आज कोणतेही भाव उपलब्ध नाहीत.</string>
+
+    <!-- Generic -->
+    <string name="loading">लोड होत आहे…</string>
+    <string name="retry">पुन्हा प्रयत्न करा</string>
+    <string name="coming_soon">लवकरच येत आहे</string>
+    <string name="version_label">आवृत्ती</string>
+
+    <!-- Permissions / location -->
+    <string name="location_permission_rationale">स्थान माहिती मिळाल्याने योग्य बाजारभाव दाखवता येतील.</string>
+
+    <!-- Share -->
+    <string name="share_patti_subject">माझी HHG पट्टी</string>
+</resources>

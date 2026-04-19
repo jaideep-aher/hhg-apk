@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Base theme (XML) — only used for splash / before Compose takes over.
+      Actual app theming is in Kotlin (ui/theme/Theme.kt) using Material 3.
+    -->
+    <style name="Theme.HHGFarmers" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/hhg_orange_500</item>
+        <item name="android:windowBackground">@color/white</item>
+        <item name="colorPrimary">@color/hhg_orange_500</item>
+    </style>
+</resources>
