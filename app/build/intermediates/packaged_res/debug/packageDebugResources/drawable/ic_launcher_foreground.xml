@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Placeholder launcher foreground — a stylized "ह" reference + sprout icon in white.
+  Replace with a proper artwork before Play Store launch.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Sprout leaves -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,28 C46,32 40,40 40,50 C40,50 50,48 54,42 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,28 C62,32 68,40 68,50 C68,50 58,48 54,42 Z" />
+    <!-- Stem -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:pathData="M52,42 L52,78 L56,78 L56,42 Z" />
+</vector>

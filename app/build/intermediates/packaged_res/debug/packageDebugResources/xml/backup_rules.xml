@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and below: legacy auto-backup rules. -->
+<full-backup-content>
+    <!-- Don't back up the telemetry queue (server-of-record); session is fine to back up. -->
+    <exclude domain="database" path="telemetry.db" />
+    <exclude domain="database" path="offline_cache.db" />
+</full-backup-content>
