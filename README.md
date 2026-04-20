@@ -200,7 +200,7 @@ steps, known quirks — in **[docs/DATABASE.md](docs/DATABASE.md)**.
 | `DATABASE_URLW` | yes (for telemetry / writes) | AWS RDS read-write connection string |
 | `NEON_DB_CONNECTION_STRING` | only if AgriSight is on | Neon Postgres URL |
 | `TELEMETRY_SECRET` | yes | Shared secret for telemetry + `x-diag-secret` on `/health` |
-| `MIN_VERSION_CODE`, `LATEST_VERSION_CODE`, `PLAY_STORE_URL`, `FORCE_UPDATE_*` | optional | Force-update gate; see `backend/.env.example` |
+| `MIN_VERSION_CODE`, `LATEST_VERSION_CODE`, `PLAY_STORE_URL`, `FORCE_UPDATE_*` | optional | Force-update gate; full reference with normal vs. block values in **[docs/FORCE_UPDATE.md](docs/FORCE_UPDATE.md)** |
 | `PORT` | auto | Railway sets this — do not override |
 
 If you only have a single legacy `DATABASE_URL` set, the backend uses it for
