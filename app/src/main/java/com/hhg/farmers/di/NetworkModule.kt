@@ -20,7 +20,7 @@ import javax.inject.Singleton
  * Provides the OkHttpClient and Retrofit instances used across the app.
  *
  * Two separate Retrofit instances:
- *   - "main"    — HHG backend (hhgfarmers.vercel.app)
+ *   - "main"    — HHG backend (api.hanumanksk.in) — Railway, points to AWS RDS PostgreSQL
  *   - "weather" — Open-Meteo (api.open-meteo.com) — completely free, no API key
  */
 @Module

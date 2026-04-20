@@ -43,8 +43,8 @@ android {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            buildConfigField("String", "API_BASE_URL", "\"https://hhgfarmers.vercel.app/api/\"")
-            buildConfigField("Boolean", "ENABLE_MOCK_REPO", "true")
+            buildConfigField("String", "API_BASE_URL", "\"https://api.hanumanksk.in/api/\"")
+            buildConfigField("Boolean", "ENABLE_MOCK_REPO", "true")  // flip to false once Railway is live
         }
         getByName("release") {
             isMinifyEnabled = true
@@ -53,8 +53,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://hhgfarmers.vercel.app/api/\"")
-            buildConfigField("Boolean", "ENABLE_MOCK_REPO", "true")
+            buildConfigField("String", "API_BASE_URL", "\"https://api.hanumanksk.in/api/\"")
+            buildConfigField("Boolean", "ENABLE_MOCK_REPO", "false")  // release always uses real backend
             // Sign with the default debug keystore so `assembleRelease` produces an installable APK
             // without repo secrets (GitHub/sideload). Use a proper upload key for Play Console.
             signingConfig = signingConfigs.getByName("debug")
