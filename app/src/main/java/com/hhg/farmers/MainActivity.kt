@@ -1,0 +1,67 @@
+package com.hhg.farmers
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.rememberNavController
+import com.hhg.farmers.data.session.SessionStore
+import com.hhg.farmers.service.telemetry.TelemetryManager
+import com.hhg.farmers.service.update.UpdateManager
+import com.hhg.farmers.ui.navigation.MainScaffold
+import com.hhg.farmers.ui.theme.HhgTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+/**
+ * Single activity — Compose takes it from here.
+ *
+ * Responsibilities retained at the Activity level:
+ *   - Apply edge-to-edge drawing + theme wrapper
+ *   - Kick off the [UpdateManager] check on resume (required because the Play
+ *     update flow needs a live Activity reference)
+ *   - Hook a process-lifecycle observer to flag app backgrounding into telemetry
+ *     (so `session_end` duration is accurate even when user swipes us away)
+ */
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var updateManager: UpdateManager
+    @Inject lateinit var telemetry: TelemetryManager
+    @Inject lateinit var sessionStore: SessionStore
+
+    private val bgObserver = object : DefaultLifecycleObserver {
+        override fun onStop(owner: LifecycleOwner) {
+            telemetry.onAppBackground()
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        ProcessLifecycleOwner.get().lifecycle.addObserver(bgObserver)
+        setContent {
+            HhgTheme {
+                val navController = rememberNavController()
+                MainScaffold(navController = navController, sessionStore = sessionStore)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Layer 2: Google Play In-App Updates. Layer 1 (our own version gate) runs
+        // independently from AppGateViewModel and may already have blocked the UI.
+        lifecycleScope.launch { updateManager.checkPlayUpdate(this@MainActivity) }
+    }
+
+    override fun onDestroy() {
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(bgObserver)
+        super.onDestroy()
+    }
+}

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Marathi (mr) — primary user language.
+  Copy is pulled from the live website to preserve voice and familiarity.
+-->
+<resources>
+    <string name="app_name">हनुमान हुंडेकरी</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">मुख्यपृष्ठ</string>
+    <string name="nav_market_rate">मार्केट भाव</string>
+    <string name="nav_ai_trend">AI मार्केट ट्रेंड</string>
+    <string name="nav_seeds">बियाणे</string>
+    <string name="nav_local_vyapari">स्थानिक व्यापारी</string>
+    <string name="nav_about">आमच्याबद्दल</string>
+    <string name="nav_logout">बाहेर पडा</string>
+
+    <!-- Home / login -->
+    <string name="home_search_title">आपले खाते शोधा</string>
+    <string name="home_aadhaar_hint">आधारचे शेवटचे ५ अंक टाका</string>
+    <string name="home_search_button">शोधा</string>
+    <string name="home_notices_title">विशेष सूचना</string>
+    <string name="home_ai_trend_cta">AI मार्केट ट्रेंड</string>
+    <string name="home_invalid_aadhaar">कृपया वैध ५ अंकी आधार क्रमांक टाका.</string>
+    <string name="home_not_found">शेतकरी आढळला नाही. कृपया वैध आधार क्रमांक टाका.</string>
+    <string name="home_checking">वैध आधार क्रमांक. डेटा अस्तित्वात आहे का ते तपासत आहोत…</string>
+    <string name="home_error_generic">काही चूक झाली आहे. कृपया पुन्हा प्रयत्न करा.</string>
+
+    <!-- Farmer dashboard -->
+    <string name="farmer_aadhaar_label">आधार नं</string>
+    <string name="farmer_mobile_label">मोबाईल नं</string>
+    <string name="farmer_address_label">पत्ता</string>
+    <string name="farmer_no_mobile_info">मोबाईल नं अपडेट करण्यासाठी HHG व्यवस्थापकाशी संपर्क साधा</string>
+    <string name="farmer_no_address_info">पत्ता अपडेट करण्यासाठी HHG व्यवस्थापकाशी संपर्क साधा</string>
+    <string name="farmer_daily_market_cta">दैनिक मार्केट भाव</string>
+    <string name="farmer_ai_trend_cta">AI मार्केट ट्रेंड (2024-25)</string>
+    <string name="farmer_patti_title">पट्ट्या / नोंदी पहा</string>
+    <string name="farmer_patti_subtitle">निवडलेल्या तारखेच्या नोंदी दर्शवत आहे</string>
+    <string name="farmer_no_data">कोणताही डेटा सापडला नाही</string>
+    <string name="farmer_back">मागे जा</string>
+    <string name="farmer_share_patti">पट्टी शेअर करा</string>
+
+    <!-- Market rate -->
+    <string name="market_hub_hundekari_title">हनुमान हुंडेकरी भाव पहा</string>
+    <string name="market_hub_hundekari_subtitle">मुंबई दलाल प्रमाणे भाव</string>
+    <string name="market_hub_hundekari_cta">हुंडेकरी भाव पहा</string>
+    <string name="market_hub_other_title">इतर मार्केट भाव पहा</string>
+    <string name="market_hub_other_subtitle">पुणे, मुंबई आणि इतर मार्केट भाव</string>
+    <string name="market_hub_other_cta">इतर मार्केट भाव पहा</string>
+    <string name="hundekari_today_title">आजचे हुंडेकरी भाव</string>
+    <string name="hundekari_today_subtitle">आजचे प्रत्येक मालाचे उच्चतम भाव</string>
+    <string name="rate_item_label">माल</string>
+    <string name="rate_value_label">भाव (₹)</string>
+    <string name="rate_no_data">आज कोणतेही भाव उपलब्ध नाहीत.</string>
+
+    <!-- Navigation (new tabs) -->
+    <string name="nav_settings">सेटिंग्ज</string>
+
+    <!-- AI Trend screen -->
+    <string name="ai_trend_powered_by">AI द्वारे संचालित</string>
+    <string name="ai_trend_updated">अपडेट: %s</string>
+    <string name="ai_trend_disclaimer">AI अंदाज केवळ माहितीसाठी आहेत. विक्री करण्यापूर्वी स्थानिक APMC भाव तपासा.</string>
+
+    <!-- Notice detail -->
+    <string name="notice_detail_title">सूचना</string>
+
+    <!-- Other markets -->
+    <string name="other_markets_title">इतर मार्केट भाव</string>
+    <string name="other_markets_min">किमान</string>
+    <string name="other_markets_max">कमाल</string>
+    <string name="other_markets_modal">मॉडल</string>
+    <string name="rates_as_of">%s चे भाव</string>
+    <string name="rates_source_apmc">स्रोत: APMC / Agmarknet (अंदाजे)</string>
+
+    <!-- Settings -->
+    <string name="settings_section_account">खाते</string>
+    <string name="settings_section_preferences">प्राधान्य</string>
+    <string name="settings_section_about">माहिती</string>
+    <string name="settings_farmer_id">शेतकरी ID (आधारचे शेवटचे 5 अंक)</string>
+    <string name="settings_language">भाषा</string>
+    <string name="settings_language_current">मराठी</string>
+    <string name="settings_notifications">सूचना</string>
+    <string name="settings_contact">कार्यालय स्थान</string>
+    <string name="settings_logout_confirm_title">बाहेर पडायचे?</string>
+    <string name="settings_logout_confirm_body">पुन्हा आपला डेटा पाहण्यासाठी आधार क्रमांक टाकावा लागेल.</string>
+    <string name="settings_cancel">रद्द करा</string>
+
+    <!-- Onboarding -->
+    <string name="onboard_page1_title">पट्ट्या एका क्लिकवर</string>
+    <string name="onboard_page1_body">आपल्या सर्व पट्टी नोंदी, देयके आणि एकूण रक्कम एकाच ठिकाणी पाहा. PDF म्हणून शेअर करा.</string>
+    <string name="onboard_page2_title">ताजे मार्केट भाव</string>
+    <string name="onboard_page2_body">हुंडेकरी भावांसह लासलगाव, पुणे, मुंबई आणि नाशिक चे APMC भाव — रोज अपडेट.</string>
+    <string name="onboard_page3_title">AI मार्केट ट्रेंड</string>
+    <string name="onboard_page3_body">कांदा, टोमॅटो, लसूण आणि बटाटा यांचे AI-चालित साप्ताहिक विश्लेषण. हुशारीने विक्री करा.</string>
+    <string name="onboard_get_started">सुरुवात करा</string>
+    <string name="onboard_skip">वगळा</string>
+    <string name="onboard_next">पुढे</string>
+
+    <!-- Weather card -->
+    <string name="weather_sangamner">संगमनेर, महाराष्ट्र</string>
+
+    <!-- Generic -->
+    <string name="loading">लोड होत आहे…</string>
+    <string name="retry">पुन्हा प्रयत्न करा</string>
+    <string name="coming_soon">लवकरच येत आहे</string>
+    <string name="version_label">आवृत्ती</string>
+
+    <!-- Permissions / location -->
+    <string name="location_permission_rationale">स्थान माहिती मिळाल्याने योग्य बाजारभाव दाखवता येतील.</string>
+
+    <!-- Startup permission sheet -->
+    <string name="permission_setup_title">अॅप परवानग्या</string>
+    <string name="permission_setup_intro">खालील परवानग्या दिल्यास अॅप चांगले चालेल. नंतर सिस्टम सेटिंग्ज मधून बदलू शकता.</string>
+    <string name="permission_bullet_location">स्थान — हवामान, बाजार संदर्भ व पुढील क्षेत्र-आधारित सुविधा</string>
+    <string name="permission_bullet_notifications">सूचना — HHG कडून येणारे मेसेज व सूचना</string>
+    <string name="permission_bullet_storage">फोटो व व्हिडिओ — जिथे अॅप सपोर्ट करेल तिथे जोडणे किंवा जतन करणे</string>
+    <string name="permission_setup_allow">परवानग्या द्या</string>
+    <string name="permission_setup_skip">आत्ता नको — अॅप मध्ये जा</string>
+    <string name="permission_setup_note">काही परवानग्या नाकारल्या तरी नंतर सेटिंग्ज › ॲप्स › HHG › परवानग्या मधून चालू करू शकता.</string>
+
+    <!-- Drawer / menu -->
+    <string name="menu_open">मेन्यू उघडा</string>
+    <string name="menu_home">मुख्यपृष्ठ</string>
+    <string name="menu_market">मार्केट भाव</string>
+    <string name="menu_ai_trend">AI मार्केट ट्रेंड</string>
+    <string name="menu_seeds">बियाणे</string>
+    <string name="menu_about">आमच्याबद्दल</string>
+    <string name="menu_contact">संपर्क</string>
+    <string name="menu_settings">सेटिंग्ज</string>
+    <string name="menu_tagline">संगमनेर, महाराष्ट्र</string>
+
+    <!-- About screen -->
+    <string name="about_title">आमच्याबद्दल</string>
+    <string name="about_heading">हनुमान हुंडेकरी</string>
+    <string name="about_body">हनुमान हुंडेकरी ही संगमनेर, महाराष्ट्र येथील जुनी भाजीपाला व्यापारी पेढी आहे. अनेक वर्षांपासून आम्ही स्थानिक शेतकऱ्यांना मुंबई व पुण्याच्या होलसेल मार्केटशी जोडून योग्य भाव आणि वेळेवर पेमेंट देण्याचे काम करतो. या अॅप मध्ये तुम्हाला तुमची पट्टी, आजचे मार्केट भाव आणि ट्रेंड मिळतील — त्यामुळे फोन लावण्यात कमी वेळ जाईल आणि शेतीला जास्त वेळ देता येईल.</string>
+    <string name="about_built_for">संगमनेर परिसरातील शेतकऱ्यांसाठी बनवले आहे.</string>
+
+    <!-- Contact screen -->
+    <string name="contact_title">संपर्क</string>
+    <string name="contact_office_label">कार्यालय</string>
+    <string name="contact_office_value">संगमनेर, अहमदनगर, महाराष्ट्र</string>
+    <string name="contact_phone_label">फोन</string>
+    <string name="contact_phone_value">HHG व्यवस्थापकाशी संपर्क साधा</string>
+    <string name="contact_whatsapp_label">व्हॉट्सअप</string>
+    <string name="contact_whatsapp_value">अॅप मधून मेसेज पाठवा</string>
+    <string name="contact_hours_label">कार्यालय वेळा</string>
+    <string name="contact_hours_value">सोम–शनि, सकाळी ९:०० – संध्या ७:००</string>
+
+    <!-- Share -->
+    <string name="share_patti_subject">माझी HHG पट्टी</string>
+</resources>
