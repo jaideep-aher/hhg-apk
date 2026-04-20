@@ -17,26 +17,26 @@ app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
 // ── Health check — Railway uses this to confirm the service is alive ──────────
-// Includes the actual DB error message so connectivity issues (wrong host,
-// RDS security group blocking Railway's IP, bad credentials, SSL mismatch)
-// are diagnosable from the browser instead of requiring Railway logs.
-app.get('/health', async (_req, res) => {
+// Public response stays minimal so nothing about the DB host / pg error / stack
+// leaks to anyone who hits this endpoint. The full error is logged server-side
+// (visible in Railway logs) and is also returned if the caller presents the
+// shared TELEMETRY_SECRET via x-diag-secret for one-off diagnosis.
+app.get('/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
     res.json({ status: 'ok', db: 'connected', ts: new Date().toISOString() });
   } catch (err) {
     const message = err && err.message ? err.message : String(err);
-    console.error('Health check DB error:', message);
-    res.status(503).json({
-      status: 'error',
-      db: 'disconnected',
-      error: message,
-      code: err && err.code,
-      host: (() => {
-        try { return new URL(process.env.DATABASE_URL || '').host; }
-        catch { return null; }
-      })(),
-    });
+    console.error('Health check DB error:', err && err.code, message);
+
+    const body = { status: 'error', db: 'disconnected' };
+    const secret = process.env.TELEMETRY_SECRET;
+    if (secret && req.headers['x-diag-secret'] === secret) {
+      body.error = message;
+      body.code = err && err.code;
+      try { body.host = new URL(process.env.DATABASE_URL || '').host; } catch {}
+    }
+    res.status(503).json(body);
   }
 });
 
