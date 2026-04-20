@@ -14,6 +14,9 @@ object Routes {
     // ── Onboarding (shown once on first launch) ──────────────────────────────
     const val ONBOARDING = "onboarding"
 
+    /** Runtime permissions prompt — once after onboarding (or on first run if onboarding skipped). */
+    const val PERMISSION_SETUP = "permission-setup"
+
     // ── Bottom-nav roots ──────────────────────────────────────────────────────
     const val HOME        = "home"
     const val MARKET_HUB  = "market"

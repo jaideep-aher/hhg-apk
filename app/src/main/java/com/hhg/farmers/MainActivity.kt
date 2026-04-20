@@ -9,6 +9,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.hhg.farmers.data.session.SessionStore
 import com.hhg.farmers.service.telemetry.TelemetryManager
 import com.hhg.farmers.service.update.UpdateManager
 import com.hhg.farmers.ui.navigation.MainScaffold
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var updateManager: UpdateManager
     @Inject lateinit var telemetry: TelemetryManager
+    @Inject lateinit var sessionStore: SessionStore
 
     private val bgObserver = object : DefaultLifecycleObserver {
         override fun onStop(owner: LifecycleOwner) {
@@ -46,7 +48,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HhgTheme {
                 val navController = rememberNavController()
-                MainScaffold(navController = navController)
+                MainScaffold(navController = navController, sessionStore = sessionStore)
             }
         }
     }

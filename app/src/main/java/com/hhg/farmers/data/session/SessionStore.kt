@@ -29,6 +29,7 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
         val TOKEN_EXPIRY = stringPreferencesKey("token_expiry")
         val ONBOARDED = booleanPreferencesKey("onboarded")
         val LOCATION_PERMISSION_ASKED = booleanPreferencesKey("location_permission_asked")
+        val PERMISSION_SETUP_DONE = booleanPreferencesKey("permission_setup_done")
     }
 
     val farmerId: Flow<String?> = context.dataStore.data.map { it[Keys.FARMER_ID] }
@@ -36,6 +37,10 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
     val onboarded: Flow<Boolean> = context.dataStore.data.map { it[Keys.ONBOARDED] ?: false }
     val locationPermissionAsked: Flow<Boolean> =
         context.dataStore.data.map { it[Keys.LOCATION_PERMISSION_ASKED] ?: false }
+
+    /** One-time startup prompt for location, notifications, and media/storage (API-dependent). */
+    val permissionSetupDone: Flow<Boolean> =
+        context.dataStore.data.map { it[Keys.PERMISSION_SETUP_DONE] ?: false }
 
     suspend fun setFarmerId(uid: String) {
         context.dataStore.edit { it[Keys.FARMER_ID] = uid }
@@ -55,6 +60,10 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
 
     suspend fun setLocationPermissionAsked() {
         context.dataStore.edit { it[Keys.LOCATION_PERMISSION_ASKED] = true }
+    }
+
+    suspend fun setPermissionSetupDone() {
+        context.dataStore.edit { it[Keys.PERMISSION_SETUP_DONE] = true }
     }
 
     suspend fun clear() {

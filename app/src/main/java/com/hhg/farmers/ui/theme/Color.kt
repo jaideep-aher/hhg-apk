@@ -12,12 +12,12 @@ val HhgOrange500 = Color(0xFFF97316)
 val HhgOrange600 = Color(0xFFEA580C)
 val HhgOrange100 = Color(0xFFFFEDD5)
 
-// Surface / neutral (matches Tailwind slate/white)
+// Surface / neutral — aligned with web `globals.css` (shadcn :root HSL tokens)
 val SurfaceLight     = Color(0xFFFFFFFF)
-val SurfaceVariant   = Color(0xFFF8FAFC)
-val OnSurface        = Color(0xFF0F172A)
-val MutedForeground  = Color(0xFF64748B)
-val Border           = Color(0xFFE2E8F0)
+val SurfaceVariant   = Color(0xFFF5F5F4)
+val OnSurface        = Color(0xFF0B0908)
+val MutedForeground  = Color(0xFF78706B)
+val Border           = Color(0xFFE7E4E3)
 
 // Semantic
 val Success100 = Color(0xFFDCFCE7)

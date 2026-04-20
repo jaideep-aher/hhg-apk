@@ -5,7 +5,8 @@
   Hindi (values-hi/) can be added later without any code change.
 -->
 <resources>
-    <string name="app_name">HHG Farmers</string>
+    <!-- Matches the public site tab title; top bar uses [app_name_mr] for the हनुमान हुंडेकरी wordmark. -->
+    <string name="app_name">HHG Farmer Portal</string>
     <string name="app_name_mr">हनुमान हुंडेकरी</string>
 
     <!-- Navigation -->
@@ -109,6 +110,16 @@
 
     <!-- Permissions / location -->
     <string name="location_permission_rationale">Location helps us show you relevant market rates and verify your area.</string>
+
+    <!-- Startup permission sheet (after onboarding) -->
+    <string name="permission_setup_title">App access</string>
+    <string name="permission_setup_intro">Allow the features below so the app can work best on your phone. You can change these later in system Settings.</string>
+    <string name="permission_bullet_location">Location — local weather, market context, and future area-based features</string>
+    <string name="permission_bullet_notifications">Notifications — alerts and messages from HHG (when we send them)</string>
+    <string name="permission_bullet_storage">Photos &amp; videos — attach or save images where the app supports it</string>
+    <string name="permission_setup_allow">Allow permissions</string>
+    <string name="permission_setup_skip">Not now — continue to the app</string>
+    <string name="permission_setup_note">If you skip or deny some items, you can enable them later in Settings › Apps › HHG Farmer Portal › Permissions.</string>
 
     <!-- Drawer / menu -->
     <string name="menu_open">Open menu</string>

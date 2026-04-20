@@ -14,11 +14,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.hhg.farmers.R
+import com.hhg.farmers.ui.theme.Border
 import com.hhg.farmers.ui.theme.HhgOrange500
+import com.hhg.farmers.ui.theme.OnSurface
+import com.hhg.farmers.ui.theme.SurfaceLight
 
 /**
  * Shared app bar. Can render one of three leading icons, in priority order:
@@ -40,6 +47,15 @@ fun AppTopBar(
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
+        modifier = Modifier.drawBehind {
+            val stroke = 1.dp.toPx()
+            drawLine(
+                color = Border,
+                start = Offset(0f, size.height - stroke / 2),
+                end = Offset(size.width, size.height - stroke / 2),
+                strokeWidth = stroke
+            )
+        },
         title = {
             Row(modifier = Modifier.padding(horizontal = 4.dp)) {
                 if (title != null) {
@@ -48,9 +64,12 @@ fun AppTopBar(
                         fontWeight = FontWeight.Bold
                     )
                 } else {
+                    // Same centered wordmark as the mobile site header (mono + extrabold orange).
                     Text(
-                        text = stringResource(R.string.app_name),
+                        text = stringResource(R.string.app_name_mr),
                         color = HhgOrange500,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                 }
@@ -71,6 +90,12 @@ fun AppTopBar(
             }
         },
         actions = actions,
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors()
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = SurfaceLight,
+            scrolledContainerColor = SurfaceLight,
+            navigationIconContentColor = OnSurface,
+            titleContentColor = HhgOrange500,
+            actionIconContentColor = OnSurface
+        )
     )
 }

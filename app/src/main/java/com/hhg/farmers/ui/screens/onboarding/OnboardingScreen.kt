@@ -86,9 +86,9 @@ private val pages = listOf(
 /**
  * Screen 9 — Onboarding.
  *
- * Shown once on first launch (checked via [SessionStore.onboarded]).
+ * Shown once on first launch (see [SessionStore.onboarded]).
  * Three swipe-able pages: welcome → market rates → AI trends.
- * On the last page "Get Started" marks onboarding complete and navigates to Home.
+ * Completing or skipping goes to the startup permission sheet, then Home.
  *
  * No ViewModel needed — navigation is the only side-effect and it's handled
  * by the caller via [onFinished].

@@ -1,7 +1,13 @@
 package com.hhg.farmers.ui.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
@@ -11,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.hhg.farmers.R
 import com.hhg.farmers.data.session.SessionStore
+import com.hhg.farmers.ui.components.LoadingState
 import com.hhg.farmers.ui.screens.about.AboutScreen
 import com.hhg.farmers.ui.screens.aitrend.AiTrendScreen
 import com.hhg.farmers.ui.screens.contact.ContactScreen
@@ -21,39 +28,72 @@ import com.hhg.farmers.ui.screens.marketrate.MarketRateHubScreen
 import com.hhg.farmers.ui.screens.notice.NoticeDetailScreen
 import com.hhg.farmers.ui.screens.onboarding.OnboardingScreen
 import com.hhg.farmers.ui.screens.othermarkets.OtherMarketsScreen
+import com.hhg.farmers.ui.screens.permissions.PermissionSetupScreen
 import com.hhg.farmers.ui.screens.placeholder.PlaceholderScreen
 import com.hhg.farmers.ui.screens.settings.SettingsScreen
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    sessionStore: SessionStore? = null,
+    sessionStore: SessionStore,
     /** Invoked when a root screen's hamburger menu icon is tapped. */
     onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
+    var navStart by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(sessionStore) {
+        val onboarded = sessionStore.onboarded.first()
+        val permDone = sessionStore.permissionSetupDone.first()
+        navStart = when {
+            !onboarded -> Routes.ONBOARDING
+            !permDone -> Routes.PERMISSION_SETUP
+            else -> Routes.HOME
+        }
+    }
+
+    if (navStart == null) {
+        LoadingState(modifier = modifier.fillMaxSize())
+        return
+    }
+
+    val start = navStart!!
+
     NavHost(
         navController = navController,
-        startDestination = Routes.ONBOARDING,
+        startDestination = start,
         modifier = modifier
     ) {
-        // ── Onboarding ────────────────────────────────────────────────────────
         composable(Routes.ONBOARDING) {
-            // If already onboarded, jump straight to Home
-            LaunchedEffect(Unit) {
-                // Check is done by the caller via sessionStore; if not passed,
-                // the screen handles "Skip / Get Started" to navigate to HOME.
-            }
             OnboardingScreen(
                 onFinished = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.ONBOARDING) { inclusive = true }
+                    scope.launch {
+                        sessionStore.setOnboarded()
+                        navController.navigate(Routes.PERMISSION_SETUP) {
+                            popUpTo(Routes.ONBOARDING) { inclusive = true }
+                        }
                     }
                 }
             )
         }
 
-        // ── Bottom-nav roots ──────────────────────────────────────────────────
+        composable(Routes.PERMISSION_SETUP) {
+            PermissionSetupScreen(
+                onFinished = {
+                    scope.launch {
+                        sessionStore.setPermissionSetupDone()
+                        sessionStore.setLocationPermissionAsked()
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.PERMISSION_SETUP) { inclusive = true }
+                        }
+                    }
+                }
+            )
+        }
+
         composable(Routes.HOME) {
             HomeScreen(
                 onFarmerFound = { uid ->
@@ -92,7 +132,6 @@ fun AppNavHost(
             )
         }
 
-        // ── Drawer destinations (About, Contact, Seeds) ───────────────────────
         composable(Routes.ABOUT) {
             AboutScreen(onBack = { navController.popBackStack() })
         }
@@ -108,7 +147,6 @@ fun AppNavHost(
             )
         }
 
-        // ── Detail / sub-screens (bottom bar hidden) ──────────────────────────
         composable(
             route = Routes.FARMER,
             arguments = listOf(navArgument("uid") { type = NavType.StringType })
@@ -138,14 +176,14 @@ fun AppNavHost(
         composable(
             route = Routes.NOTICE_DETAIL,
             arguments = listOf(
-                navArgument("title")   { type = NavType.StringType; defaultValue = "" },
+                navArgument("title") { type = NavType.StringType; defaultValue = "" },
                 navArgument("content") { type = NavType.StringType; defaultValue = "" }
             )
         ) { entry ->
             NoticeDetailScreen(
-                title   = entry.arguments?.getString("title").orEmpty(),
+                title = entry.arguments?.getString("title").orEmpty(),
                 content = entry.arguments?.getString("content").orEmpty(),
-                onBack  = { navController.popBackStack() }
+                onBack = { navController.popBackStack() }
             )
         }
     }

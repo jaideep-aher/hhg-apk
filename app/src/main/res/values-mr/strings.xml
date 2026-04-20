@@ -108,6 +108,16 @@
     <!-- Permissions / location -->
     <string name="location_permission_rationale">स्थान माहिती मिळाल्याने योग्य बाजारभाव दाखवता येतील.</string>
 
+    <!-- Startup permission sheet -->
+    <string name="permission_setup_title">अॅप परवानग्या</string>
+    <string name="permission_setup_intro">खालील परवानग्या दिल्यास अॅप चांगले चालेल. नंतर सिस्टम सेटिंग्ज मधून बदलू शकता.</string>
+    <string name="permission_bullet_location">स्थान — हवामान, बाजार संदर्भ व पुढील क्षेत्र-आधारित सुविधा</string>
+    <string name="permission_bullet_notifications">सूचना — HHG कडून येणारे मेसेज व सूचना</string>
+    <string name="permission_bullet_storage">फोटो व व्हिडिओ — जिथे अॅप सपोर्ट करेल तिथे जोडणे किंवा जतन करणे</string>
+    <string name="permission_setup_allow">परवानग्या द्या</string>
+    <string name="permission_setup_skip">आत्ता नको — अॅप मध्ये जा</string>
+    <string name="permission_setup_note">काही परवानग्या नाकारल्या तरी नंतर सेटिंग्ज › ॲप्स › HHG › परवानग्या मधून चालू करू शकता.</string>
+
     <!-- Drawer / menu -->
     <string name="menu_open">मेन्यू उघडा</string>
     <string name="menu_home">मुख्यपृष्ठ</string>

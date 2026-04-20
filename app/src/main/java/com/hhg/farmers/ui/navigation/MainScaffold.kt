@@ -2,6 +2,7 @@ package com.hhg.farmers.ui.navigation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
@@ -33,8 +35,10 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,6 +48,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.hhg.farmers.R
+import com.hhg.farmers.data.session.SessionStore
 import com.hhg.farmers.service.update.UpdateGateState
 import com.hhg.farmers.ui.components.LoadingState
 import com.hhg.farmers.ui.screens.update.ForceUpdateScreen
@@ -68,6 +73,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScaffold(
     navController: NavHostController,
+    sessionStore: SessionStore,
     gateViewModel: AppGateViewModel = hiltViewModel()
 ) {
     val gate by gateViewModel.gate.collectAsStateWithLifecycle()
@@ -75,12 +81,18 @@ fun MainScaffold(
     when (val state = gate) {
         is UpdateGateState.Checking -> LoadingState(modifier = Modifier)
         is UpdateGateState.ForceUpdate -> ForceUpdateScreen(config = state.config)
-        is UpdateGateState.Allowed -> AppContent(navController = navController)
+        is UpdateGateState.Allowed -> AppContent(
+            navController = navController,
+            sessionStore = sessionStore
+        )
     }
 }
 
 @Composable
-private fun AppContent(navController: NavHostController) {
+private fun AppContent(
+    navController: NavHostController,
+    sessionStore: SessionStore
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -160,6 +172,7 @@ private fun AppContent(navController: NavHostController) {
         ) { innerPadding ->
             AppNavHost(
                 navController = navController,
+                sessionStore = sessionStore,
                 onOpenDrawer = { scope.launch { drawerState.open() } },
                 modifier = Modifier.padding(innerPadding)
             )
@@ -184,19 +197,30 @@ private fun AppDrawerContent(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            // ── Brand header ──────────────────────────────────────────────────
+            // ── Brand header (sprout + wordmark like the web Header sheet) ────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = HhgOrange500
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Spa,
+                        contentDescription = null,
+                        tint = HhgOrange500,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.app_name_mr),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp
+                    )
+                }
                 Text(
                     text = stringResource(R.string.menu_tagline),
                     style = MaterialTheme.typography.bodyMedium,
