@@ -55,6 +55,52 @@
     <string name="rate_value_label">Rate (₹)</string>
     <string name="rate_no_data">No rates available for today yet.</string>
 
+    <!-- Navigation (new tabs) -->
+    <string name="nav_settings">Settings</string>
+
+    <!-- AI Trend screen -->
+    <string name="ai_trend_powered_by">Powered by AI</string>
+    <string name="ai_trend_updated">Updated: %s</string>
+    <string name="ai_trend_disclaimer">AI predictions are indicative only. Actual market rates may vary. Always verify with your local APMC before selling.</string>
+
+    <!-- Notice detail -->
+    <string name="notice_detail_title">Notice</string>
+
+    <!-- Other markets -->
+    <string name="other_markets_title">Other Market Rates</string>
+    <string name="other_markets_min">Min</string>
+    <string name="other_markets_max">Max</string>
+    <string name="other_markets_modal">Modal</string>
+    <string name="rates_as_of">Rates as of %s</string>
+    <string name="rates_source_apmc">Source: APMC / Agmarknet (indicative)</string>
+
+    <!-- Settings -->
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_preferences">Preferences</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_farmer_id">Farmer ID (Aadhaar last 5)</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_current">Marathi</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_contact">Office Location</string>
+    <string name="settings_logout_confirm_title">Log out?</string>
+    <string name="settings_logout_confirm_body">You will need to enter your Aadhaar number again to access your patti.</string>
+    <string name="settings_cancel">Cancel</string>
+
+    <!-- Onboarding -->
+    <string name="onboard_page1_title">Your records, one tap away</string>
+    <string name="onboard_page1_body">View your patti entries, payment history, and totals — all in one place. Share as PDF anytime.</string>
+    <string name="onboard_page2_title">Live market rates</string>
+    <string name="onboard_page2_body">Today\'s Hundekari rates plus APMC data from Lasalgaon, Pune, Mumbai, and Nashik — updated daily.</string>
+    <string name="onboard_page3_title">AI market trends</string>
+    <string name="onboard_page3_body">AI-powered weekly analysis of onion, tomato, garlic, and potato rates. Plan your sales smarter.</string>
+    <string name="onboard_get_started">Get Started</string>
+    <string name="onboard_skip">Skip</string>
+    <string name="onboard_next">Next</string>
+
+    <!-- Weather card -->
+    <string name="weather_sangamner">Sangamner, Maharashtra</string>
+
     <!-- Generic -->
     <string name="loading">Loading&#8230;</string>
     <string name="retry">Retry</string>

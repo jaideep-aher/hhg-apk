@@ -1,6 +1,7 @@
 package com.hhg.farmers.ui.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,8 +22,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -49,6 +54,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hhg.farmers.R
 import com.hhg.farmers.data.model.Notice
+import com.hhg.farmers.service.weather.wmoDescription
+import com.hhg.farmers.service.weather.wmoDescriptionMr
 import com.hhg.farmers.ui.components.AppTopBar
 import com.hhg.farmers.ui.components.LoadingState
 import com.hhg.farmers.ui.theme.HhgOrange500
@@ -70,10 +77,13 @@ import com.hhg.farmers.ui.theme.HhgTheme
 fun HomeScreen(
     onFarmerFound: (uid: String) -> Unit,
     onAiTrendClick: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+    onNoticeClick: (title: String, content: String) -> Unit = { _, _ -> },
+    viewModel: HomeViewModel = hiltViewModel(),
+    weatherViewModel: WeatherViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val event by viewModel.events.collectAsStateWithLifecycle()
+    val weatherState by weatherViewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(event) {
         when (val e = event) {
@@ -94,6 +104,11 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // Weather card (Open-Meteo, no key needed)
+            if (!weatherState.isLoading && weatherState.weather != null) {
+                WeatherCard(weatherState.weather!!)
+            }
+
             SearchCard(
                 aadhaar = state.aadhaar,
                 isSearching = state.isSearching,
@@ -104,7 +119,8 @@ fun HomeScreen(
 
             NoticesBlock(
                 loading = state.noticesLoading,
-                notices = state.notices
+                notices = state.notices,
+                onNoticeClick = onNoticeClick
             )
 
             AiTrendButton(onClick = onAiTrendClick)
@@ -181,7 +197,66 @@ private fun SearchCard(
 }
 
 @Composable
-private fun NoticesBlock(loading: Boolean, notices: List<Notice>) {
+private fun WeatherCard(weather: com.hhg.farmers.service.weather.WeatherResponse) {
+    val cw = weather.currentWeather
+    val (_, emoji) = wmoDescription(cw.weatherCode)
+    val descMr = wmoDescriptionMr(cw.weatherCode)
+    val daily = weather.daily
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(emoji, style = MaterialTheme.typography.headlineLarge)
+                Column {
+                    Text(
+                        text = "${cw.tempC.toInt()}°C  $descMr",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = stringResource(R.string.weather_sangamner),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+            }
+            // 3-day rain forecast (useful for farmers)
+            if (daily != null && daily.rainMm.isNotEmpty()) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Icon(Icons.Filled.Water, contentDescription = null, tint = Color(0xFF3B82F6), modifier = Modifier.size(14.dp))
+                        Text(
+                            text = "${daily.rainMm.take(3).sum().toInt()} mm / 3 days",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color(0xFF3B82F6)
+                        )
+                    }
+                    Text(
+                        text = "↑${daily.maxTemp.firstOrNull()?.toInt()}° ↓${daily.minTemp.firstOrNull()?.toInt()}°",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NoticesBlock(
+    loading: Boolean,
+    notices: List<Notice>,
+    onNoticeClick: (title: String, content: String) -> Unit = { _, _ -> }
+) {
     Column {
         Text(
             text = stringResource(R.string.home_notices_title),
@@ -196,14 +271,17 @@ private fun NoticesBlock(loading: Boolean, notices: List<Notice>) {
                 contentPadding = PaddingValues(vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(notices, key = { it.id }) { NoticeCard(it) }
+                items(notices, key = { it.id }) { NoticeCard(it, onNoticeClick) }
             }
         }
     }
 }
 
 @Composable
-private fun NoticeCard(notice: Notice) {
+private fun NoticeCard(
+    notice: Notice,
+    onClick: (title: String, content: String) -> Unit = { _, _ -> }
+) {
     val bg = runCatching { Color(android.graphics.Color.parseColor(notice.colorHex ?: "#FFEDD5")) }
         .getOrDefault(Color(0xFFFFEDD5))
     Box(
@@ -211,6 +289,7 @@ private fun NoticeCard(notice: Notice) {
             .width(280.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
+            .then(Modifier.clickable { onClick(notice.title, notice.content) })
             .padding(14.dp)
     ) {
         Column {
@@ -224,7 +303,8 @@ private fun NoticeCard(notice: Notice) {
             Text(
                 text = notice.content,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF334155)
+                color = Color(0xFF334155),
+                maxLines = 3
             )
         }
     }

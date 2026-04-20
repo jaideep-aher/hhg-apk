@@ -4,10 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -15,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.hhg.farmers.service.telemetry.TelemetryManager
 import com.hhg.farmers.service.update.UpdateManager
-import com.hhg.farmers.ui.navigation.AppNavHost
+import com.hhg.farmers.ui.navigation.MainScaffold
 import com.hhg.farmers.ui.theme.HhgTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -50,12 +46,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HhgTheme {
                 val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
-                    AppNavHost(
-                        navController = navController,
-                        modifier = Modifier.padding(padding)
-                    )
-                }
+                MainScaffold(navController = navController)
             }
         }
     }

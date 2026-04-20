@@ -22,22 +22,34 @@ import com.hhg.farmers.ui.theme.HhgOrange500
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
+    /** Pass a non-null lambda to show the back arrow. */
     onBack: (() -> Unit)? = null,
+    /** Convenience flag — when true and [onBack] is null, icon is shown but non-functional. */
+    showBack: Boolean = onBack != null,
+    /** Optional custom title. Defaults to the app name in brand orange. */
+    title: String? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
         title = {
             Row(modifier = Modifier.padding(horizontal = 4.dp)) {
-                Text(
-                    text = stringResource(R.string.app_name),
-                    color = HhgOrange500,
-                    fontWeight = FontWeight.ExtraBold
-                )
+                if (title != null) {
+                    Text(
+                        text = title,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        color = HhgOrange500,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
             }
         },
         navigationIcon = {
-            if (onBack != null) {
-                IconButton(onClick = onBack) {
+            if (showBack || onBack != null) {
+                IconButton(onClick = { onBack?.invoke() }) {
                     Icon(Icons.Default.ArrowBack, contentDescription = null)
                 }
             }
