@@ -2,7 +2,12 @@
 
 Native **farmer-side** Android app for **Hanuman Hundekari / HHG** — Jetpack Compose UI, offline-friendly caching, and integrations aimed at production rollout (telemetry, optional Firebase, Play in-app updates).
 
-Public branch on GitHub: [jaideep-aher/hhg-apk — `Jai-intial`](https://github.com/jaideep-aher/hhg-apk/tree/Jai-intial).
+Public branch on GitHub: [jaideep-aher/hhg-apk — `main`](https://github.com/jaideep-aher/hhg-apk/tree/main).
+
+Live API: **https://api.hanumanksk.in** (Railway). Health check: `/health`.
+
+Database architecture (three pools — RDS read, RDS write, Neon): see
+**[docs/DATABASE.md](docs/DATABASE.md)**.
 
 ---
 
@@ -166,27 +171,62 @@ Change there (or introduce build flavors) if you point to staging or another hos
 
 `ENABLE_MOCK_REPO` in `build.gradle.kts`:
 
-- **Debug:** `true` — can use the in-app mock repository for UI work without hitting the network.
-- **Release:** `false` — **always uses the real HTTP API** (Railway backend + Postgres).
+- **Debug:** `false` — hits the real Railway backend. Flip to `true` only when
+  you want to iterate on UI without the network.
+- **Release:** `false` — always uses the real HTTP API.
 
 ---
 
-## Backend (Railway) and database
+## Backend (Railway) and databases
 
-The Android app does **not** talk to the Postgres database directly. It uses **HTTPS** to a **Node/Express** service that you run on **Railway** (and map to a custom domain).
+The Android app never talks to Postgres directly. It hits **HTTPS** endpoints
+on an Express service running on **Railway** at `api.hanumanksk.in`, which
+fronts **three separate Postgres connections**:
 
-| Piece | Role |
-|--------|------|
-| **Railway** | Hosts the API process (Node). Set **`PORT`** (e.g. `3000`) and **`DATABASE_URL`** in the Railway service variables. |
-| **Custom domain** | **`api.hanumanksk.in`** points at that Railway service so the app and tools use a stable URL. |
-| **PostgreSQL** | The API connects with **`pg`** using **`DATABASE_URL`** (AWS RDS, Railway Postgres, or any reachable Postgres). Farmer rows, patti, vendor rates, and notices are read via SQL in route handlers. |
-| **Source in this repo** | **`backend/src/`** — `index.js` (health check, mounts `/api/...`), `routes/farmer.js`, `routes/rates.js`, `routes/notices.js`, `routes/config.js` (version gate for force-update), `db/pool.js`. |
+| Pool | Target | Used for |
+|---|---|---|
+| `r` | AWS RDS (`ro` user) | farmer lookup, patti, Hundekari rates, notices, `/health` |
+| `w` | AWS RDS (`postgres` user) | telemetry inserts, any future write endpoints |
+| `neon` | Neon Postgres | AgriSight market-trend data (wired when the feature ships) |
 
-**Health check:** `GET https://api.hanumanksk.in/health` — should report database connectivity when `DATABASE_URL` is correct. `GET https://api.hanumanksk.in/api/config` serves **`minVersionCode`** and copy for the in-app force-update gate (no DB required).
+Full reference — env vars, per-route pool selection, SSL handling, rotation
+steps, known quirks — in **[docs/DATABASE.md](docs/DATABASE.md)**.
 
-**Website vs mobile API:** The public **Next.js farmer website** may use **server actions** and its own env vars (`DATABASE_URLR`, etc.) to talk to Postgres. That is a **separate deployment** from this Express API. Both should use compatible data; fixing one does not automatically fix the other if credentials or networking differ.
+### Minimum Railway variables
 
-Deploy from **`backend/`** on Railway: `npm install`, then **`npm start`** (see `package.json`). Set **`DATABASE_URL`** and confirm **`GET /health`** returns a connected database before expecting the Android **release** build to show live farmer and rate data.
+| Var | Required | Notes |
+|---|---|---|
+| `DATABASE_URLR` | yes | AWS RDS read-only connection string |
+| `DATABASE_URLW` | yes (for telemetry / writes) | AWS RDS read-write connection string |
+| `NEON_DB_CONNECTION_STRING` | only if AgriSight is on | Neon Postgres URL |
+| `TELEMETRY_SECRET` | yes | Shared secret for telemetry + `x-diag-secret` on `/health` |
+| `MIN_VERSION_CODE`, `LATEST_VERSION_CODE`, `PLAY_STORE_URL`, `FORCE_UPDATE_*` | optional | Force-update gate; see `backend/.env.example` |
+| `PORT` | auto | Railway sets this — do not override |
+
+If you only have a single legacy `DATABASE_URL` set, the backend uses it for
+both `r` and `w` pools.
+
+### Source in this repo
+
+`backend/src/`:
+- `index.js` — express bootstrap, mounts `/api/...`, public `/health`
+- `db/pool.js` — three-pool factory (r / w / neon) with forced SSL + NUMERIC parsers
+- `routes/farmer.js` / `rates.js` / `notices.js` — read routes (`r`)
+- `routes/telemetry.js` — write route (`w`)
+- `routes/config.js` — force-update gate (no DB)
+
+### Deploying
+
+```bash
+cd backend
+npm install
+npm start   # reads env vars; see backend/.env.example for the full list
+```
+
+`GET /health` must return `{"status":"ok","db":"connected"}` before a release
+APK will show live farmer / rate data. If it reports `disconnected`, add
+`x-diag-secret: <TELEMETRY_SECRET>` to the request to see the real pg error
+and host without it being exposed publicly.
 
 ### Firebase (optional)
 

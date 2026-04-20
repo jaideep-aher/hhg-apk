@@ -9,34 +9,60 @@ const { parse } = require('pg-connection-string');
 types.setTypeParser(1700, (v) => (v === null ? null : parseFloat(v))); // NUMERIC / DECIMAL
 types.setTypeParser(20,   (v) => (v === null ? null : parseInt(v, 10))); // BIGINT (int8)
 
-// ── SSL config ────────────────────────────────────────────────────────────────
-// AWS RDS presents a cert signed by Amazon's private CA, which Node's default
-// trust store doesn't recognise — OpenSSL reports it as "self-signed in chain"
-// and refuses the handshake.
+/**
+ * Build a pg Pool from a libpq-style URL, forcing our own SSL config.
+ *
+ * We parse the URL with pg-connection-string and hand pg the discrete fields
+ * so pg's internal handling of `sslmode=require` (which treats it as
+ * `verify-full` and rejects the RDS Amazon CA as self-signed) is bypassed.
+ * Returns null if the URL env var is missing, so callers can fall back.
+ */
+function makePool(url, label) {
+  if (!url) return null;
+  const cfg = parse(url);
+  const pool = new Pool({
+    host:     cfg.host,
+    port:     cfg.port ? Number(cfg.port) : 5432,
+    user:     cfg.user,
+    password: cfg.password,
+    database: cfg.database,
+    ssl:      { rejectUnauthorized: false },
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
+  pool.on('error', (err) => {
+    console.error(`[pg pool:${label}]`, err && err.message ? err.message : err);
+  });
+  return pool;
+}
+
+// ── Three logical databases ───────────────────────────────────────────────────
+// r    → read-only on AWS RDS: farmer / patti / rates / notices reads
+// w    → read-write on AWS RDS: telemetry inserts and future writes
+// neon → Neon Postgres: AgriSight market-trend data (separate owner DB)
 //
-// We need `rejectUnauthorized: false` to bypass validation. Passing this via
-// the Pool config alone isn't reliable in pg 8.x: if `sslmode=require` is
-// present in the connection string, the URL parser overwrites the user-supplied
-// SSL object with `ssl: true`, which re-enables verification.
-//
-// Fix: parse the URL ourselves, drop any URL-level SSL hints, and hand pg the
-// discrete fields + our own SSL object. This way our setting always wins.
-const parsed = parse(process.env.DATABASE_URL || '');
+// Each URL var is optional. If a specific R/W var is unset we fall back to the
+// legacy single DATABASE_URL so existing Railway deploys keep working unchanged.
+const primaryUrl = process.env.DATABASE_URLR
+                || process.env.DATABASE_URL_R
+                || process.env.DATABASE_URL;
 
-const pool = new Pool({
-  host:     parsed.host,
-  port:     parsed.port ? Number(parsed.port) : 5432,
-  user:     parsed.user,
-  password: parsed.password,
-  database: parsed.database,
-  ssl:      { rejectUnauthorized: false },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
+const writeUrl   = process.env.DATABASE_URLW
+                || process.env.DATABASE_URL_W
+                || process.env.DATABASE_URL;
 
-pool.on('error', (err) => {
-  console.error('[pg pool error]', err && err.message ? err.message : err);
-});
+const neonUrl    = process.env.NEON_DB_CONNECTION_STRING
+                || process.env.NEON_DATABASE_URL;
 
-module.exports = pool;
+const r    = makePool(primaryUrl, 'r');
+const w    = makePool(writeUrl,   'w');
+const neon = makePool(neonUrl,    'neon');
+
+// Default export is the read pool — `require('../db/pool')` still returns a
+// Pool-like object with `.query()` for older call sites. Named exports (`r`,
+// `w`, `neon`) let new code pick the right pool explicitly.
+module.exports = r || { query: () => Promise.reject(new Error('No read DB configured')) };
+module.exports.r = r;
+module.exports.w = w;
+module.exports.neon = neon;

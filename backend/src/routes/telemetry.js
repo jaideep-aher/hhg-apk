@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const pool = require('../db/pool');
+const { w: pool } = require('../db/pool');  // telemetry inserts → write pool
 
 const router = Router();
 
