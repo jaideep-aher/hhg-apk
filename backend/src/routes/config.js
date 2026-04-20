@@ -27,8 +27,12 @@ router.get('/', (req, res) => {
   res.json({
     minVersionCode:      parseInt(process.env.MIN_VERSION_CODE      || '1',  10),
     latestVersionCode:   parseInt(process.env.LATEST_VERSION_CODE   || '1',  10),
-    playStoreUrl:        process.env.PLAY_STORE_URL ||
-                         'https://play.google.com/store/apps/details?id=com.hhg.farmers',
+    // Leave blank by default — the Android client derives the correct URL from
+    // its own applicationId (context.packageName) so "Update now" always lands
+    // on the real listing even if the app was renamed. Only set PLAY_STORE_URL
+    // in Railway if you deliberately want to override (e.g. package migration
+    // where you want old users pointed at a new listing).
+    playStoreUrl:        process.env.PLAY_STORE_URL || '',
     forceUpdateTitle:    process.env.FORCE_UPDATE_TITLE   || 'अॅप अपडेट करा',
     forceUpdateMessage:  process.env.FORCE_UPDATE_MESSAGE ||
                          'पुढे जाण्यासाठी कृपया अॅपचे नवीन व्हर्जन इन्स्टॉल करा. ' +

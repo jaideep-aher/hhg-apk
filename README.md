@@ -34,8 +34,8 @@ The file in **`ready to use app/hhg-farmers.apk`** is a **release** build (R8 mi
 |--|--|
 | **Path** | `ready to use app/hhg-farmers.apk` |
 | **Build type** | `release` (optimized, not a debuggable dev build) |
-| **Application ID** | `com.hhg.farmers` |
-| **Version** | `Version 4` (versionCode `4`) — matches **`ready-to-use/version-4.apk`**. Previous **`version-3.apk`**, **`version-2.apk`** (broken — AppCompat theme crash), and **`version-1.apk`** are kept in the same folder for history / rollback. |
+| **Application ID** | `com.tec.agrofixpartner` (matches existing Play Store listing) |
+| **Version** | `Version 5` (versionCode `5`) — matches **`ready-to-use/version-5.apk`**. Fixes a bug where the "Update now" button on the force-update screen opened an "item not found" Play Store page because the URL was hard-coded to the old `com.hhg.farmers` ID. The URL is now derived from the app's actual package name at runtime. Previous **`version-4.apk`**, **`version-3.apk`**, **`version-2.apk`** (broken — AppCompat theme crash), and **`version-1.apk`** are kept in the same folder for history / rollback. |
 | **Requires Android** | **7.0 (API 24) or newer** — typical phones and tablets from ~2016 onward |
 | **Signing** | Release pipeline uses the **default debug keystore** so the project can ship an installable APK from GitHub without checking in production keys. For **Google Play**, replace this with your **upload key** in `app/build.gradle.kts`. |
 

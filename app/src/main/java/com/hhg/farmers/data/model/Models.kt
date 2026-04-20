@@ -94,7 +94,17 @@ data class LocalVyaparAd(
 data class AppConfig(
     val minVersionCode: Int = 1,
     val latestVersionCode: Int = 1,
-    val playStoreUrl: String = "https://play.google.com/store/apps/details?id=com.hhg.farmers",
+    /**
+     * Play Store listing URL for the "Update now" button.
+     *
+     * Leave this blank in defaults / backend responses — the UI (see
+     * ForceUpdateScreen) derives the correct URL from [android.content.Context.getPackageName]
+     * so it always points at the app's real listing regardless of whether the
+     * applicationId gets renamed later. Only set this field explicitly if you
+     * need to override the default behavior (e.g. redirect to a different
+     * listing during a package migration).
+     */
+    val playStoreUrl: String = "",
     val forceUpdateTitle: String = "अॅप अपडेट करा",
     val forceUpdateMessage: String =
         "पुढे जाण्यासाठी कृपया अॅपचे नवीन व्हर्जन इन्स्टॉल करा. " +

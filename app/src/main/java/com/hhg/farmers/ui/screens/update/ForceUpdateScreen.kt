@@ -130,10 +130,32 @@ fun ForceUpdateScreen(config: AppConfig) {
 
                 Button(
                     onClick = {
-                        // Open Play Store listing in a new task so the app exits cleanly
-                        val intent = Intent(Intent.ACTION_VIEW, config.playStoreUrl.toUri())
+                        // Build the Play Store URL from the app's actual package name so
+                        // "Update now" always lands on the real listing — even if the
+                        // applicationId has been renamed (e.g. com.tec.agrofixpartner)
+                        // and any stale / blank URL from the backend config would
+                        // otherwise point at "item not found".
+                        val pkg = context.packageName
+                        val fallbackUrl = "https://play.google.com/store/apps/details?id=$pkg"
+                        val configuredUrl = config.playStoreUrl
+                            .takeIf { it.isNotBlank() && it.contains("id=$pkg") }
+                        val webUrl = configuredUrl ?: fallbackUrl
+
+                        // Prefer opening the Play Store app directly via the market://
+                        // scheme; fall back to the web URL if Play isn't installed
+                        // (e.g. sideloaded device without Play Services).
+                        val marketIntent = Intent(
+                            Intent.ACTION_VIEW,
+                            "market://details?id=$pkg".toUri()
+                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                        val webIntent = Intent(Intent.ACTION_VIEW, webUrl.toUri())
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        runCatching { context.startActivity(intent) }
+
+                        runCatching { context.startActivity(marketIntent) }
+                            .onFailure {
+                                runCatching { context.startActivity(webIntent) }
+                            }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
