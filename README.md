@@ -11,6 +11,7 @@ Public branch on GitHub: [jaideep-aher/hhg-apk — `Jai-intial`](https://github.
 | Area | Description |
 |------|-------------|
 | `app/` | Android application module (`com.hhg.farmers`), UI, networking, Room, WorkManager, Hilt DI |
+| `backend/` | **Express API** (Node) for farmer search, patti, Hundekari rates, notices — deploy to **Railway**, Postgres via `DATABASE_URL` — see [Backend (Railway) and database](#backend-railway-and-database) |
 | `ready to use app/` | **Prebuilt release APK** for sideload install (`hhg-farmers.apk`) — see [Prebuilt APK](#prebuilt-apk) |
 | `gradle/` | Gradle wrapper and version catalog |
 
@@ -59,9 +60,12 @@ cp app/build/outputs/apk/release/app-release.apk ready to use app/hhg-farmers.ap
 
 ### Implemented
 
+- **Onboarding & permissions (first launch)**
+  - Short intro carousel, then a **permission** screen for location, notifications, and (on Android 13+ / older APIs) photo/media access — aligns with Play expectations; users can skip and continue.
 - **Home**
   - Search by **last 5 digits of Aadhaar**; loads notices carousel and navigates to the farmer dashboard when a match is found.
   - Entry to **AI Market Trend** (screen is still a placeholder — see below).
+  - UI branding aligned with the public farmer portal (wordmark, colors).
 - **Farmer dashboard**
   - Profile-style card (name, Aadhaar, mobile, address when available).
   - **Patti / records** list with totals (payable, quantity, weight).
@@ -152,15 +156,37 @@ Outputs:
 
 ### API base URL
 
-Defined in `app/build.gradle.kts` as `API_BASE_URL` for both `debug` and `release`:
+Defined in `app/build.gradle.kts` as `BuildConfig.API_BASE_URL`:
 
-- Default: `https://hhgfarmers.vercel.app/api/`
+- **Default:** `https://api.hanumanksk.in/api/` (Railway-hosted API — see below)
 
-Change there (or introduce build flavors) if you point to staging/production.
+Change there (or introduce build flavors) if you point to staging or another host.
 
 ### Mock repository flag
 
-`ENABLE_MOCK_REPO` is set in `build.gradle.kts` (`true` in current debug/release blocks). Adjust when wiring real backends only.
+`ENABLE_MOCK_REPO` in `build.gradle.kts`:
+
+- **Debug:** `true` — can use the in-app mock repository for UI work without hitting the network.
+- **Release:** `false` — **always uses the real HTTP API** (Railway backend + Postgres).
+
+---
+
+## Backend (Railway) and database
+
+The Android app does **not** talk to the Postgres database directly. It uses **HTTPS** to a **Node/Express** service that you run on **Railway** (and map to a custom domain).
+
+| Piece | Role |
+|--------|------|
+| **Railway** | Hosts the API process (Node). Set **`PORT`** (e.g. `3000`) and **`DATABASE_URL`** in the Railway service variables. |
+| **Custom domain** | **`api.hanumanksk.in`** points at that Railway service so the app and tools use a stable URL. |
+| **PostgreSQL** | The API connects with **`pg`** using **`DATABASE_URL`** (AWS RDS, Railway Postgres, or any reachable Postgres). Farmer rows, patti, vendor rates, and notices are read via SQL in route handlers. |
+| **Source in this repo** | **`backend/src/`** — `index.js` (health check, mounts `/api/...`), `routes/farmer.js`, `routes/rates.js`, `routes/notices.js`, `routes/config.js` (version gate for force-update), `db/pool.js`. |
+
+**Health check:** `GET https://api.hanumanksk.in/health` — should report database connectivity when `DATABASE_URL` is correct. `GET https://api.hanumanksk.in/api/config` serves **`minVersionCode`** and copy for the in-app force-update gate (no DB required).
+
+**Website vs mobile API:** The public **Next.js farmer website** may use **server actions** and its own env vars (`DATABASE_URLR`, etc.) to talk to Postgres. That is a **separate deployment** from this Express API. Both should use compatible data; fixing one does not automatically fix the other if credentials or networking differ.
+
+Deploy from **`backend/`** on Railway: `npm install`, then **`npm start`** (see `package.json`). Set **`DATABASE_URL`** and confirm **`GET /health`** returns a connected database before expecting the Android **release** build to show live farmer and rate data.
 
 ### Firebase (optional)
 
@@ -183,7 +209,10 @@ Declared in `AndroidManifest.xml`, including:
 - Internet / network state  
 - Fine/coarse **location**  
 - **Notifications** (Android 13+) for FCM  
+- **Photos / video** (`READ_MEDIA_*` on Android 13+) and legacy **`READ_EXTERNAL_STORAGE`** (up to API 32) where needed for attachments/saves  
 - Package queries for WhatsApp / select UPI apps (sharing and adoption signals — see manifest comments)
+
+On first launch, after onboarding, the app can prompt for the relevant runtime permissions together (see in-app **App access** screen).
 
 ---
 
