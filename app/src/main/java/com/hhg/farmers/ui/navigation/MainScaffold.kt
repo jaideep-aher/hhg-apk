@@ -11,22 +11,47 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.hhg.farmers.service.update.UpdateGateState
+import com.hhg.farmers.ui.components.LoadingState
+import com.hhg.farmers.ui.screens.update.ForceUpdateScreen
 import com.hhg.farmers.ui.theme.HhgOrange500
 import com.hhg.farmers.ui.theme.OnSurface
 
 /**
- * Top-level scaffold that hosts the bottom navigation bar + the full nav graph.
+ * Top-level scaffold.
  *
- * The bottom bar is only visible on root-level screens (Home, Market, AI Trend, Settings).
- * Detail screens (Farmer, Hundekari rates, Notice detail, etc.) sit above the root stack
- * and inherit `false` from the visibility check — the bar slides away automatically because
- * Scaffold simply doesn't render it when `bottomBar = {}`.
+ * TWO THINGS HAPPEN BEFORE ANY SCREEN IS SHOWN:
+ *   1. [AppGateViewModel] fetches GET /api/config on launch.
+ *   2. Until the result lands, the whole app is a loading spinner.
+ *
+ * If the backend says our version is below `minVersionCode`, [ForceUpdateScreen]
+ * takes over the entire surface — no navigation, no back button, no dismiss.
+ * This is our primary force-update path and works for both Play Store and sideloaded APKs.
+ *
+ * Google Play's In-App Updates IMMEDIATE flow runs separately from [MainActivity.onResume]
+ * and will overlay its own full-screen Play UI on top of this whenever it succeeds.
  */
 @Composable
-fun MainScaffold(navController: NavHostController) {
+fun MainScaffold(
+    navController: NavHostController,
+    gateViewModel: AppGateViewModel = hiltViewModel()
+) {
+    val gate by gateViewModel.gate.collectAsStateWithLifecycle()
+
+    when (val state = gate) {
+        is UpdateGateState.Checking -> LoadingState(modifier = Modifier)
+        is UpdateGateState.ForceUpdate -> ForceUpdateScreen(config = state.config)
+        is UpdateGateState.Allowed -> AppContent(navController = navController)
+    }
+}
+
+@Composable
+private fun AppContent(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 

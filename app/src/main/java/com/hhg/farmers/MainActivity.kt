@@ -53,9 +53,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Play In-App Updates — immediate flow forces the user off stale versions when the
-        // backend's min-supported version code is bumped. Non-blocking otherwise.
-        lifecycleScope.launch { updateManager.checkForUpdate(this@MainActivity) }
+        // Layer 2: Google Play In-App Updates. Layer 1 (our own version gate) runs
+        // independently from AppGateViewModel and may already have blocked the UI.
+        lifecycleScope.launch { updateManager.checkPlayUpdate(this@MainActivity) }
     }
 
     override fun onDestroy() {

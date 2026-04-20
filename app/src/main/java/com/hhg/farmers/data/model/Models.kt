@@ -69,6 +69,24 @@ data class VendorRate(
 @JsonClass(generateAdapter = true)
 data class FarmerExistsResponse(val exists: Boolean)
 
+/**
+ * Returned by GET /api/config — runtime-tunable values the app reads on every launch.
+ * Driving force behind the force-update mechanism: bump `minVersionCode` on the backend
+ * and every old APK in the wild will show the blocking update screen on next launch.
+ *
+ * All fields have fallback defaults so the app still works if the endpoint is unreachable.
+ */
+@JsonClass(generateAdapter = true)
+data class AppConfig(
+    val minVersionCode: Int = 1,
+    val latestVersionCode: Int = 1,
+    val playStoreUrl: String = "https://play.google.com/store/apps/details?id=com.hhg.farmers",
+    val forceUpdateTitle: String = "अॅप अपडेट करा",
+    val forceUpdateMessage: String =
+        "पुढे जाण्यासाठी कृपया अॅपचे नवीन व्हर्जन इन्स्टॉल करा. " +
+        "जुने व्हर्जन आता सपोर्टेड नाही."
+)
+
 @JsonClass(generateAdapter = true)
 data class ItemSummary(
     val item: String,
