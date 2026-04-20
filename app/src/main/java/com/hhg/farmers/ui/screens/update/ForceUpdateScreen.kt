@@ -27,12 +27,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.hhg.farmers.BuildConfig
+import com.hhg.farmers.R
 import com.hhg.farmers.data.model.AppConfig
 import com.hhg.farmers.ui.theme.HhgOrange500
 import com.hhg.farmers.ui.theme.HhgTheme
@@ -72,6 +74,24 @@ fun ForceUpdateScreen(config: AppConfig) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                // App brand wordmark — keeps users oriented that this
+                // blocker belongs to Hanuman Hundekari, not a system dialog.
+                Text(
+                    text = stringResource(R.string.app_name_mr),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = HhgOrange500,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Hanuman Hundekari",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(20.dp))
+
                 // Large orange update icon
                 Box(
                     modifier = Modifier
