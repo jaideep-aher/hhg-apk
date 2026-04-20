@@ -2,6 +2,7 @@ package com.hhg.farmers.data.repo
 
 import com.hhg.farmers.data.model.FarmerDataPage
 import com.hhg.farmers.data.model.FarmerExistsResponse
+import com.hhg.farmers.data.model.LocalVyaparAd
 import com.hhg.farmers.data.model.Notice
 import com.hhg.farmers.data.model.VendorRate
 import retrofit2.http.GET
@@ -41,4 +42,8 @@ interface FarmerApi {
      */
     @GET("notices")
     suspend fun getNotices(): List<Notice>
+
+    /** Local trade listings — same backing query as the website localvyapar page. */
+    @GET("localvyapar/ads")
+    suspend fun getLocalVyaparAds(): List<LocalVyaparAd>
 }

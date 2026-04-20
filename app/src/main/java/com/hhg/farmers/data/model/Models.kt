@@ -69,6 +69,20 @@ data class VendorRate(
 @JsonClass(generateAdapter = true)
 data class FarmerExistsResponse(val exists: Boolean)
 
+/** Returned by GET /api/localvyapar/ads — parity with the website localvyapar listings. */
+@JsonClass(generateAdapter = true)
+data class LocalVyaparAd(
+    val advId: Int,
+    val item: String,
+    val requiredWeight: Double? = null,
+    val askingPrice: Double? = null,
+    /** ISO date string from the API. */
+    val requiredDate: String? = null,
+    val status: String,
+    val description: String? = null,
+    val vyapariName: String
+)
+
 /**
  * Returned by GET /api/config — runtime-tunable values the app reads on every launch.
  * Driving force behind the force-update mechanism: bump `minVersionCode` on the backend

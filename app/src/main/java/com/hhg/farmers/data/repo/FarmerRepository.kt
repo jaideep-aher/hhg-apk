@@ -2,6 +2,7 @@ package com.hhg.farmers.data.repo
 
 import com.hhg.farmers.data.model.FarmerDataPage
 import com.hhg.farmers.data.model.ItemSummary
+import com.hhg.farmers.data.model.LocalVyaparAd
 import com.hhg.farmers.data.model.MarketRate
 import com.hhg.farmers.data.model.Notice
 import com.hhg.farmers.data.model.VendorRate
@@ -33,4 +34,6 @@ interface FarmerRepository {
     suspend fun getVendorItemRatesForItem(item: String): List<VendorRate>
 
     suspend fun getHundekariRatesToday(): List<VendorRate>
+
+    suspend fun getLocalVyaparAds(): List<LocalVyaparAd>
 }

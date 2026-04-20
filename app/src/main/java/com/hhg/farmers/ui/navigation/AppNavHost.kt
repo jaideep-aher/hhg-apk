@@ -23,6 +23,7 @@ import com.hhg.farmers.ui.screens.aitrend.AiTrendScreen
 import com.hhg.farmers.ui.screens.contact.ContactScreen
 import com.hhg.farmers.ui.screens.farmer.FarmerDashboardScreen
 import com.hhg.farmers.ui.screens.home.HomeScreen
+import com.hhg.farmers.ui.screens.localvyapar.LocalVyaparScreen
 import com.hhg.farmers.ui.screens.marketrate.HundekariRatesScreen
 import com.hhg.farmers.ui.screens.marketrate.MarketRateHubScreen
 import com.hhg.farmers.ui.screens.notice.NoticeDetailScreen
@@ -145,6 +146,10 @@ fun AppNavHost(
                 title = stringResource(R.string.menu_seeds),
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        composable(Routes.LOCAL_VYAPARI) {
+            LocalVyaparScreen(onBack = { navController.popBackStack() })
         }
 
         composable(

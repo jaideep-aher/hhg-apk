@@ -2,6 +2,7 @@ package com.hhg.farmers.data.repo
 
 import com.hhg.farmers.data.model.FarmerDataPage
 import com.hhg.farmers.data.model.ItemSummary
+import com.hhg.farmers.data.model.LocalVyaparAd
 import com.hhg.farmers.data.model.MarketRate
 import com.hhg.farmers.data.model.Notice
 import com.hhg.farmers.data.model.VendorRate
@@ -76,4 +77,8 @@ class RetrofitFarmerRepository @Inject constructor(
 
     override suspend fun getVendorItemRatesForItem(item: String): List<VendorRate> =
         emptyList()
+
+    override suspend fun getLocalVyaparAds(): List<LocalVyaparAd> = runCatching {
+        api.getLocalVyaparAds()
+    }.getOrElse { throw it }
 }

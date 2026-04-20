@@ -8,6 +8,7 @@ const ratesRouter     = require('./routes/rates');
 const noticesRouter   = require('./routes/notices');
 const telemetryRouter = require('./routes/telemetry');
 const configRouter    = require('./routes/config');
+const localvyaparRouter = require('./routes/localvyapar');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +47,7 @@ app.use('/api/rates',     ratesRouter);
 app.use('/api/notices',   noticesRouter);
 app.use('/api/telemetry', telemetryRouter);
 app.use('/api/config',    configRouter);
+app.use('/api/localvyapar', localvyaparRouter);
 
 // ── 404 catch-all ─────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));

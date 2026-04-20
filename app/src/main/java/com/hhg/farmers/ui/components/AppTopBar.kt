@@ -2,6 +2,7 @@ package com.hhg.farmers.ui.components
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -25,13 +26,16 @@ import com.hhg.farmers.R
 import com.hhg.farmers.ui.theme.Border
 import com.hhg.farmers.ui.theme.HhgOrange500
 import com.hhg.farmers.ui.theme.OnSurface
-import com.hhg.farmers.ui.theme.SurfaceLight
+import com.hhg.farmers.ui.theme.TopBarSurface
 
 /**
  * Shared app bar. Can render one of three leading icons, in priority order:
  *   1. Back arrow, when [onBack] is set — for detail screens.
  *   2. Hamburger menu, when [onMenuClick] is set — for root screens that host the drawer.
  *   3. None.
+ *
+ * The Marathi wordmark [R.string.app_name_mr] stays visible on every screen (default title);
+ * it sits slightly high in the bar on a warm off-white strip distinct from the main surface.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,19 +61,23 @@ fun AppTopBar(
             )
         },
         title = {
-            Row(modifier = Modifier.padding(horizontal = 4.dp)) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .offset(y = (-2).dp)
+            ) {
                 if (title != null) {
                     Text(
                         text = title,
                         fontWeight = FontWeight.Bold
                     )
                 } else {
-                    // Same centered wordmark as the mobile site header (mono + extrabold orange).
+                    // हनुमान हुंडेकरी — always Marathi in the top strip (locale-independent).
                     Text(
                         text = stringResource(R.string.app_name_mr),
                         color = HhgOrange500,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 24.sp,
+                        fontSize = 23.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                 }
@@ -91,8 +99,8 @@ fun AppTopBar(
         },
         actions = actions,
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = SurfaceLight,
-            scrolledContainerColor = SurfaceLight,
+            containerColor = TopBarSurface,
+            scrolledContainerColor = TopBarSurface,
             navigationIconContentColor = OnSurface,
             titleContentColor = HhgOrange500,
             actionIconContentColor = OnSurface

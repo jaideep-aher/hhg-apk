@@ -30,6 +30,13 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
         val ONBOARDED = booleanPreferencesKey("onboarded")
         val LOCATION_PERMISSION_ASKED = booleanPreferencesKey("location_permission_asked")
         val PERMISSION_SETUP_DONE = booleanPreferencesKey("permission_setup_done")
+        /** UI language: `"mr"` (default) or `"en"`. */
+        val APP_LANGUAGE = stringPreferencesKey("app_language")
+    }
+
+    companion object {
+        const val LANGUAGE_MR = "mr"
+        const val LANGUAGE_EN = "en"
     }
 
     val farmerId: Flow<String?> = context.dataStore.data.map { it[Keys.FARMER_ID] }
@@ -41,6 +48,10 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
     /** One-time startup prompt for location, notifications, and media/storage (API-dependent). */
     val permissionSetupDone: Flow<Boolean> =
         context.dataStore.data.map { it[Keys.PERMISSION_SETUP_DONE] ?: false }
+
+    /** App UI language — defaults to Marathi. */
+    val appLanguage: Flow<String> =
+        context.dataStore.data.map { it[Keys.APP_LANGUAGE] ?: LANGUAGE_MR }
 
     suspend fun setFarmerId(uid: String) {
         context.dataStore.edit { it[Keys.FARMER_ID] = uid }
@@ -66,7 +77,23 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
         context.dataStore.edit { it[Keys.PERMISSION_SETUP_DONE] = true }
     }
 
+    suspend fun setAppLanguage(languageCode: String) {
+        val code = when (languageCode) {
+            LANGUAGE_EN -> LANGUAGE_EN
+            else -> LANGUAGE_MR
+        }
+        context.dataStore.edit { it[Keys.APP_LANGUAGE] = code }
+    }
+
+    /**
+     * Clears signed-in farmer session. Preserves onboarding, permission flags, and app language.
+     */
     suspend fun clear() {
-        context.dataStore.edit { it.clear() }
+        context.dataStore.edit {
+            it.remove(Keys.FARMER_ID)
+            it.remove(Keys.ACCESS_TOKEN)
+            it.remove(Keys.REFRESH_TOKEN)
+            it.remove(Keys.TOKEN_EXPIRY)
+        }
     }
 }

@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.lifecycle.process)
     implementation(libs.navigation.compose)
     implementation(libs.core.ktx)
+    implementation(libs.appcompat)
     implementation(libs.ui.text.google.fonts)
     debugImplementation(libs.compose.ui.tooling)
 

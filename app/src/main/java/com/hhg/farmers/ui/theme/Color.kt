@@ -14,6 +14,8 @@ val HhgOrange100 = Color(0xFFFFEDD5)
 
 // Surface / neutral — aligned with web `globals.css` (shadcn :root HSL tokens)
 val SurfaceLight     = Color(0xFFFFFFFF)
+/** Top app bar — subtle warm tint so the wordmark strip reads apart from page content. */
+val TopBarSurface    = Color(0xFFFFF7F0)
 val SurfaceVariant   = Color(0xFFF5F5F4)
 val OnSurface        = Color(0xFF0B0908)
 val MutedForeground  = Color(0xFF78706B)

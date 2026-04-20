@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
@@ -256,6 +257,13 @@ private fun AppDrawerContent(
                 label = stringResource(R.string.menu_seeds),
                 icon = Icons.Filled.Grass,
                 route = Routes.SEEDS_LIST,
+                currentRoute = currentRoute,
+                onClick = onItemClick
+            )
+            DrawerItem(
+                label = stringResource(R.string.nav_local_vyapari),
+                icon = Icons.Filled.Map,
+                route = Routes.LOCAL_VYAPARI,
                 currentRoute = currentRoute,
                 onClick = onItemClick
             )

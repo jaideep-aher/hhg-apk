@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hhg.farmers.R
+import com.hhg.farmers.data.session.SessionStore
 import com.hhg.farmers.ui.components.AppTopBar
 import com.hhg.farmers.ui.theme.HhgOrange500
 import com.hhg.farmers.ui.theme.HhgTheme
@@ -64,6 +65,41 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(stringResource(R.string.settings_language_picker_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(
+                        onClick = {
+                            viewModel.setAppLanguage(SessionStore.LANGUAGE_MR)
+                            showLanguageDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.settings_language_option_mr))
+                    }
+                    TextButton(
+                        onClick = {
+                            viewModel.setAppLanguage(SessionStore.LANGUAGE_EN)
+                            showLanguageDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.settings_language_option_en))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text(stringResource(R.string.settings_cancel))
+                }
+            }
+        )
+    }
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -124,8 +160,12 @@ fun SettingsScreen(
                 SettingsActionRow(
                     icon = Icons.Filled.Language,
                     label = stringResource(R.string.settings_language),
-                    trailingLabel = stringResource(R.string.settings_language_current),
-                    onClick = { /* Coming soon */ }
+                    trailingLabel = if (state.appLanguageCode == SessionStore.LANGUAGE_EN) {
+                        stringResource(R.string.settings_language_option_en)
+                    } else {
+                        stringResource(R.string.settings_language_option_mr)
+                    },
+                    onClick = { showLanguageDialog = true }
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                 SettingsActionRow(
@@ -146,7 +186,7 @@ fun SettingsScreen(
                 SettingsInfoRow(
                     icon = Icons.Filled.Info,
                     label = stringResource(R.string.settings_contact),
-                    value = "Sangamner, Maharashtra"
+                    value = stringResource(R.string.contact_office_value)
                 )
             }
         }

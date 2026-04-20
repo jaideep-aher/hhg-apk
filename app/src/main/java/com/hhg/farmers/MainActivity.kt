@@ -1,8 +1,8 @@
 package com.hhg.farmers
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -29,7 +29,7 @@ import javax.inject.Inject
  *     (so `session_end` duration is accurate even when user swipes us away)
  */
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var updateManager: UpdateManager
     @Inject lateinit var telemetry: TelemetryManager

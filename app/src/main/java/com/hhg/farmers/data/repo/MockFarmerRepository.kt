@@ -3,6 +3,7 @@ package com.hhg.farmers.data.repo
 import com.hhg.farmers.data.model.Farmer
 import com.hhg.farmers.data.model.FarmerDataPage
 import com.hhg.farmers.data.model.ItemSummary
+import com.hhg.farmers.data.model.LocalVyaparAd
 import com.hhg.farmers.data.model.MarketRate
 import com.hhg.farmers.data.model.Notice
 import com.hhg.farmers.data.model.PattiEntry
@@ -27,7 +28,7 @@ class MockFarmerRepository @Inject constructor() : FarmerRepository {
         uid = "55555",
         farmername = "रामराव पाटील",
         mobilenumber = "9876543210",
-        farmeraddress = "मु. पो. साकूर, ता. संगमनेर, जि. अहमदनगर",
+        farmeraddress = "घारगाव, ता. संगमनेर, जि. अहमदनगर",
         status = "ACTIVE"
     )
 
@@ -143,5 +144,32 @@ class MockFarmerRepository @Inject constructor() : FarmerRepository {
                 highestRate = Random.nextDouble(18.0, 55.0)
             )
         }
+    }
+
+    override suspend fun getLocalVyaparAds(): List<LocalVyaparAd> {
+        delay(400)
+        val today = LocalDate.now().toString()
+        return listOf(
+            LocalVyaparAd(
+                advId = 1,
+                item = "कांदा",
+                requiredWeight = 500.0,
+                askingPrice = 18.0,
+                requiredDate = today,
+                status = "Active",
+                description = "उत्पादक दराने — नमुना जाहिरात",
+                vyapariName = "दुकान A"
+            ),
+            LocalVyaparAd(
+                advId = 2,
+                item = "टोमॅटो",
+                requiredWeight = 200.0,
+                askingPrice = 25.0,
+                requiredDate = today,
+                status = "Pending",
+                description = null,
+                vyapariName = "दुकान B"
+            )
+        )
     }
 }

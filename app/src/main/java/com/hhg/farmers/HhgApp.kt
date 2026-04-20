@@ -1,10 +1,16 @@
 package com.hhg.farmers
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.hhg.farmers.data.session.SessionStore
 import com.hhg.farmers.service.telemetry.TelemetryManager
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -24,6 +30,7 @@ class HhgApp : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var telemetry: TelemetryManager
+    @Inject lateinit var sessionStore: SessionStore
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -32,6 +39,10 @@ class HhgApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        runBlocking(Dispatchers.IO) {
+            val tag = sessionStore.appLanguage.first()
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+        }
         telemetry.onAppStart()
     }
 }

@@ -312,7 +312,7 @@ private val previewFarmer = Farmer(
     uid = "55555",
     farmername = "रामराव पाटील",
     mobilenumber = "9876543210",
-    farmeraddress = "मु. पो. साकूर, ता. संगमनेर, जि. अहमदनगर",
+    farmeraddress = "घारगाव, ता. संगमनेर, जि. अहमदनगर",
     status = "ACTIVE"
 )
 

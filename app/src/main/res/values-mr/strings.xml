@@ -4,7 +4,8 @@
   Copy is pulled from the live website to preserve voice and familiarity.
 -->
 <resources>
-    <string name="app_name">हनुमान हुंडेकरी</string>
+    <string name="app_name">हुंडेकरी</string>
+    <string name="app_name_mr">हनुमान हुंडेकरी</string>
 
     <!-- Navigation -->
     <string name="nav_home">मुख्यपृष्ठ</string>
@@ -20,6 +21,7 @@
     <string name="home_aadhaar_hint">आधारचे शेवटचे ५ अंक टाका</string>
     <string name="home_search_button">शोधा</string>
     <string name="home_notices_title">विशेष सूचना</string>
+    <string name="home_notices_empty">सध्या कोणतीही सूचना नाही.</string>
     <string name="home_ai_trend_cta">AI मार्केट ट्रेंड</string>
     <string name="home_invalid_aadhaar">कृपया वैध ५ अंकी आधार क्रमांक टाका.</string>
     <string name="home_not_found">शेतकरी आढळला नाही. कृपया वैध आधार क्रमांक टाका.</string>
@@ -79,6 +81,9 @@
     <string name="settings_farmer_id">शेतकरी ID (आधारचे शेवटचे 5 अंक)</string>
     <string name="settings_language">भाषा</string>
     <string name="settings_language_current">मराठी</string>
+    <string name="settings_language_option_mr">मराठी</string>
+    <string name="settings_language_option_en">इंग्रजी</string>
+    <string name="settings_language_picker_title">भाषा निवडा</string>
     <string name="settings_notifications">सूचना</string>
     <string name="settings_contact">कार्यालय स्थान</string>
     <string name="settings_logout_confirm_title">बाहेर पडायचे?</string>
@@ -97,7 +102,8 @@
     <string name="onboard_next">पुढे</string>
 
     <!-- Weather card -->
-    <string name="weather_sangamner">संगमनेर, महाराष्ट्र</string>
+    <string name="weather_subtitle_ghargaon">घारगाव (संगमनेर तालुका) · ४२२६२०</string>
+    <string name="weather_subtitle_device">सध्याच्या ठिकाणाचे हवामान</string>
 
     <!-- Generic -->
     <string name="loading">लोड होत आहे…</string>
@@ -127,18 +133,49 @@
     <string name="menu_about">आमच्याबद्दल</string>
     <string name="menu_contact">संपर्क</string>
     <string name="menu_settings">सेटिंग्ज</string>
-    <string name="menu_tagline">संगमनेर, महाराष्ट्र</string>
+    <string name="menu_tagline">घारगाव, संगमनेर तालुका · ४२२६२०</string>
+
+    <!-- Local Vyapar -->
+    <string name="local_vyapar_title">स्थानिक व्यापार</string>
+    <string name="local_vyapar_headline">उपलब्ध जाहिराती</string>
+    <string name="local_vyapar_disclaimer">सर्व जाहिराती HHG द्वारे प्रमाणित आहेत. ही स्क्रीन केवळ माहितीसाठी आहे — रुची किंवा इतर नोंदणी येथे साठवली जात नाही; थेट HHG शी संपर्क साधा.</string>
+    <string name="local_vyapar_search_hint">शोधा…</string>
+    <string name="local_vyapar_sort_price">भाव</string>
+    <string name="local_vyapar_sort_date">दिनांक</string>
+    <string name="local_vyapar_sort_weight">वजन</string>
+    <string name="local_vyapar_toggle_order">क्रम बदला</string>
+    <string name="local_vyapar_per_kg">प्रति किलो</string>
+    <string name="local_vyapar_readonly_cta">रुची नोंदवता येत नाही (वाचन केवळ)</string>
 
     <!-- About screen -->
     <string name="about_title">आमच्याबद्दल</string>
     <string name="about_heading">हनुमान हुंडेकरी</string>
-    <string name="about_body">हनुमान हुंडेकरी ही संगमनेर, महाराष्ट्र येथील जुनी भाजीपाला व्यापारी पेढी आहे. अनेक वर्षांपासून आम्ही स्थानिक शेतकऱ्यांना मुंबई व पुण्याच्या होलसेल मार्केटशी जोडून योग्य भाव आणि वेळेवर पेमेंट देण्याचे काम करतो. या अॅप मध्ये तुम्हाला तुमची पट्टी, आजचे मार्केट भाव आणि ट्रेंड मिळतील — त्यामुळे फोन लावण्यात कमी वेळ जाईल आणि शेतीला जास्त वेळ देता येईल.</string>
-    <string name="about_built_for">संगमनेर परिसरातील शेतकऱ्यांसाठी बनवले आहे.</string>
+    <string name="about_body">हनुमान हुंडेकरी ही घारगाव, संगमनेर तालुका, अहमदनगर जिल्हा (पिन ४२२६२०), महाराष्ट्र येथील जुनी भाजीपाला व्यापारी पेढी आहे. अनेक वर्षांपासून आम्ही स्थानिक शेतकऱ्यांना मुंबई व पुण्याच्या होलसेल मार्केटशी जोडून योग्य भाव आणि वेळेवर पेमेंट देण्याचे काम करतो. या अॅप मध्ये तुम्हाला तुमची पट्टी, आजचे मार्केट भाव आणि ट्रेंड मिळतील — त्यामुळे फोन लावण्यात कमी वेळ जाईल आणि शेतीला जास्त वेळ देता येईल.</string>
+    <string name="about_built_for">घारगाव व संगमनेर तालुक्यातील शेतकऱ्यांसाठी बनवले आहे.</string>
+    <string name="about_story_title">आमची गोष्ट</string>
+    <string name="about_story_p1">१९६७ पासून, आम्ही एका छोट्या हुंडेकरीपासून सुरुवात केली ज्याने शेतकऱ्यांना त्यांचे उत्पादन बाजारात आणण्यात मदत केली. हुंडेकरी जसजसे लोकप्रिय होत गेले तसतसे आमचे संस्थापक श्री. शिवाजी गंगाधर आहेर यांनी, अभ्यागतांना खते आणि कीटकनाशके विकण्यास सुरुवात केली, जी आता हनुमान कृषी सेवा केंद्र म्हणून ओळखली जाते.</string>
+    <string name="about_story_p2">असंख्य संघर्ष होऊनही, हनुमान हुंडेकरी हे घारगाव आणि पठारभाग परिसरात एक महत्त्वाचे नाव आहे आणि शेतकऱ्यांना मदत करण्याचा मोठा इतिहास आहे. कृषी समुदायाला पाठिंबा देण्याची आमची वचनबद्धता गेली अनेक वर्षे अटूट आहे.</string>
+    <string name="about_stat_downloads">1000+ डाउनलोड</string>
+    <string name="about_stat_years">50+ वर्षांची सेवा</string>
+    <string name="about_business_title">आमचे व्यवसाय</string>
+    <string name="about_card_krishi_title">हनुमान कृषी सेवा केंद्र</string>
+    <string name="about_card_krishi_body">होलसेल खते, औषधे व बियाणे</string>
+    <string name="about_card_krishi_phone">संपर्क: 9890466423</string>
+    <string name="about_card_movers_title">हनुमान अर्थमूव्हर्स</string>
+    <string name="about_card_movers_body">JCB सर्व्हिस</string>
+    <string name="about_card_movers_phone">संपर्क: 9860081723</string>
+    <string name="about_card_hh_title">हनुमान हुंडेकरी</string>
+    <string name="about_card_hh_body">कांदा बारदान, धान्य गोण्या, तार, सुतळी व कार्यक्रमांना लागणारे भांडे, टेबल, खुर्च्या इत्यादी.</string>
+    <string name="about_card_hh_phone">संपर्क: 9890466423</string>
+    <string name="about_location_title">स्थान</string>
+    <string name="about_location_place">हनुमान हुंडेकरी — घारगाव (संगमनेर तालुका) · ४२२६२०</string>
+    <string name="about_directions">दिशा मिळवा</string>
+    <string name="about_footer_credit">Agrofix Technologies Pvt. Ltd. द्वारे विकसित</string>
 
     <!-- Contact screen -->
     <string name="contact_title">संपर्क</string>
     <string name="contact_office_label">कार्यालय</string>
-    <string name="contact_office_value">संगमनेर, अहमदनगर, महाराष्ट्र</string>
+    <string name="contact_office_value">घारगाव, संगमनेर तालुका, अहमदनगर — ४२२६२०, महाराष्ट्र</string>
     <string name="contact_phone_label">फोन</string>
     <string name="contact_phone_value">HHG व्यवस्थापकाशी संपर्क साधा</string>
     <string name="contact_whatsapp_label">व्हॉट्सअप</string>

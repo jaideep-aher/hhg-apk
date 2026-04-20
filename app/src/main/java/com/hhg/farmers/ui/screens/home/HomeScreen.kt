@@ -1,21 +1,22 @@
 package com.hhg.farmers.ui.screens.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -37,11 +38,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -51,6 +54,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hhg.farmers.R
 import com.hhg.farmers.data.model.Notice
@@ -66,9 +71,9 @@ import com.hhg.farmers.ui.theme.HhgTheme
  *
  * Core blocks match the mobile web (`page.jsx`): search card, notices, AI trend CTA.
  *
- * **Android-only additions** (not removed when aligning branding): Sangamner weather
- * strip, native bottom navigation + drawer, optional location permission for future
- * geo features, and the app gate / force-update flow — see [MainScaffold].
+ * **Android-only additions** (not removed when aligning branding): local weather
+ * (device GPS when allowed, else Ghargaon), native bottom navigation + drawer,
+ * and the app gate / force-update flow — see [MainScaffold].
  */
 @Composable
 fun HomeScreen(
@@ -93,6 +98,19 @@ fun HomeScreen(
         }
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, weatherViewModel) {
+        val observer = LifecycleEventObserver { _, e ->
+            if (e == Lifecycle.Event.ON_RESUME) weatherViewModel.refresh()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(Unit) {
+        weatherViewModel.refresh()
+    }
+
     Scaffold(topBar = { AppTopBar(onMenuClick = onMenuClick) }) { innerPadding ->
         Column(
             modifier = Modifier
@@ -102,11 +120,6 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Weather card (Open-Meteo, no key needed)
-            if (!weatherState.isLoading && weatherState.weather != null) {
-                WeatherCard(weatherState.weather!!)
-            }
-
             SearchCard(
                 aadhaar = state.aadhaar,
                 isSearching = state.isSearching,
@@ -115,13 +128,19 @@ fun HomeScreen(
                 onSearch = viewModel::onSearch
             )
 
-            NoticesBlock(
+            NoticesAndAiCard(
                 loading = state.noticesLoading,
                 notices = state.notices,
-                onNoticeClick = onNoticeClick
+                onNoticeClick = onNoticeClick,
+                onAiTrendClick = onAiTrendClick
             )
 
-            AiTrendButton(onClick = onAiTrendClick)
+            if (!weatherState.isLoading && weatherState.weather != null) {
+                WeatherCard(
+                    weather = weatherState.weather!!,
+                    usedDeviceLocation = weatherState.usedDeviceLocation
+                )
+            }
         }
     }
 }
@@ -144,7 +163,9 @@ private fun SearchCard(
             Text(
                 text = stringResource(R.string.home_search_title),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
@@ -195,7 +216,10 @@ private fun SearchCard(
 }
 
 @Composable
-private fun WeatherCard(weather: com.hhg.farmers.service.weather.WeatherResponse) {
+private fun WeatherCard(
+    weather: com.hhg.farmers.service.weather.WeatherResponse,
+    usedDeviceLocation: Boolean
+) {
     val cw = weather.currentWeather
     val (_, emoji) = wmoDescription(cw.weatherCode)
     val descMr = wmoDescriptionMr(cw.weatherCode)
@@ -221,7 +245,13 @@ private fun WeatherCard(weather: com.hhg.farmers.service.weather.WeatherResponse
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = stringResource(R.string.weather_sangamner),
+                        text = stringResource(
+                            if (usedDeviceLocation) {
+                                R.string.weather_subtitle_device
+                            } else {
+                                R.string.weather_subtitle_ghargaon
+                            }
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
@@ -249,27 +279,88 @@ private fun WeatherCard(weather: com.hhg.farmers.service.weather.WeatherResponse
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun NoticesBlock(
+private fun NoticesAndAiCard(
     loading: Boolean,
     notices: List<Notice>,
-    onNoticeClick: (title: String, content: String) -> Unit = { _, _ -> }
+    onNoticeClick: (String, String) -> Unit,
+    onAiTrendClick: () -> Unit
 ) {
-    Column {
-        Text(
-            text = stringResource(R.string.home_notices_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(Modifier.height(8.dp))
-        when {
-            loading -> LoadingState()
-            notices.isEmpty() -> Unit
-            else -> LazyRow(
-                contentPadding = PaddingValues(vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(Modifier.padding(bottom = 12.dp)) {
+            Text(
+                text = stringResource(R.string.home_notices_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                textAlign = TextAlign.Center
+            )
+            when {
+                loading -> LoadingState()
+                else -> {
+                    val pageCount = notices.size.coerceAtLeast(1)
+                    val pagerState = rememberPagerState(pageCount = { pageCount })
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 160.dp, max = 240.dp)
+                    ) { page ->
+                        if (notices.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.home_notices_empty),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        } else {
+                            NoticeCard(
+                                notice = notices[page],
+                                onClick = onNoticeClick,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onAiTrendClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF9333EA)
+                ),
+                shape = RoundedCornerShape(14.dp)
             ) {
-                items(notices, key = { it.id }) { NoticeCard(it, onNoticeClick) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Insights, contentDescription = null, tint = Color.White)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.home_ai_trend_cta),
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
@@ -278,13 +369,13 @@ private fun NoticesBlock(
 @Composable
 private fun NoticeCard(
     notice: Notice,
-    onClick: (title: String, content: String) -> Unit = { _, _ -> }
+    onClick: (String, String) -> Unit = { _, _ -> },
+    modifier: Modifier = Modifier
 ) {
     val bg = runCatching { Color(android.graphics.Color.parseColor(notice.colorHex ?: "#FFEDD5")) }
         .getOrDefault(Color(0xFFFFEDD5))
     Box(
-        modifier = Modifier
-            .width(280.dp)
+        modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
             .then(Modifier.clickable { onClick(notice.title, notice.content) })
@@ -303,29 +394,6 @@ private fun NoticeCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF334155),
                 maxLines = 3
-            )
-        }
-    }
-}
-
-@Composable
-private fun AiTrendButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(56.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF9333EA)
-        ),
-        shape = RoundedCornerShape(14.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Insights, contentDescription = null, tint = Color.White)
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.home_ai_trend_cta),
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
             )
         }
     }
@@ -358,8 +426,7 @@ private fun HomeScreenPreview() {
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 SearchCard(aadhaar = "55555", isSearching = false, error = null, onAadhaarChange = {}, onSearch = {})
-                NoticesBlock(loading = false, notices = previewNotices)
-                AiTrendButton(onClick = {})
+                NoticesAndAiCard(loading = false, notices = previewNotices, onNoticeClick = { _, _ -> }, onAiTrendClick = {})
             }
         }
     }
@@ -375,8 +442,7 @@ private fun HomeScreenNotFoundPreview() {
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 SearchCard(aadhaar = "99999", isSearching = false, error = SearchError.NotFound, onAadhaarChange = {}, onSearch = {})
-                NoticesBlock(loading = false, notices = previewNotices)
-                AiTrendButton(onClick = {})
+                NoticesAndAiCard(loading = false, notices = previewNotices, onNoticeClick = { _, _ -> }, onAiTrendClick = {})
             }
         }
     }

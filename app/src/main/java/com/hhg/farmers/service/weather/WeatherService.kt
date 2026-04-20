@@ -9,18 +9,18 @@ import retrofit2.http.Query
  * Open-Meteo weather API — completely free, no API key required.
  * Docs: https://open-meteo.com/en/docs
  *
- * We fetch current conditions for the Sangamner area (lat 19.57, lon 74.21).
- * The WMO weather codes (weathercode) map to human-readable descriptions via [wmoDescription].
+ * Callers pass latitude/longitude — typically device GPS when permission is granted,
+ * else [com.hhg.farmers.service.weather.WeatherLocation.GHARGAON_LAT]/[GHARGAON_LON] for Ghargaon.
  */
 interface WeatherService {
     @GET("v1/forecast")
     suspend fun getCurrentWeather(
-        @Query("latitude")              lat: Double = 19.57,
-        @Query("longitude")             lon: Double = 74.21,
-        @Query("current_weather")       currentWeather: Boolean = true,
-        @Query("daily")                 daily: String = "precipitation_sum,temperature_2m_max,temperature_2m_min",
-        @Query("forecast_days")         forecastDays: Int = 3,
-        @Query("timezone")              timezone: String = "Asia/Kolkata"
+        @Query("latitude") lat: Double,
+        @Query("longitude") lon: Double,
+        @Query("current_weather") currentWeather: Boolean = true,
+        @Query("daily") daily: String = "precipitation_sum,temperature_2m_max,temperature_2m_min",
+        @Query("forecast_days") forecastDays: Int = 3,
+        @Query("timezone") timezone: String = "Asia/Kolkata"
     ): WeatherResponse
 }
 
