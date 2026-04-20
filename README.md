@@ -11,7 +11,7 @@ Public branch on GitHub: [jaideep-aher/hhg-apk — `Jai-intial`](https://github.
 | Area | Description |
 |------|-------------|
 | `app/` | Android application module (`com.hhg.farmers`), UI, networking, Room, WorkManager, Hilt DI |
-| `apk1/` | **Prebuilt release APK** for sideload install (`hhg-farmers.apk`) — see [Prebuilt APK](#prebuilt-apk) |
+| `ready to use apk/` | **Prebuilt release APK** for sideload install (`hhg-farmers.apk`) — see [Prebuilt APK](#prebuilt-apk) |
 | `gradle/` | Gradle wrapper and version catalog |
 
 The app targets Indian farmers with **Marathi-first** strings (`values-mr/`) and English fallbacks (`values/`).
@@ -20,13 +20,13 @@ The app targets Indian farmers with **Marathi-first** strings (`values-mr/`) and
 
 ## Prebuilt APK
 
-The file in **`apk1/hhg-farmers.apk`** is a **release** build (R8 minify + resource shrinking, universal APK with all CPU ABIs). It is signed and can be installed on **any device that meets the minimum OS version**, the same way you install apps outside the Play Store.
+The file in **`ready to use apk/hhg-farmers.apk`** is a **release** build (R8 minify + resource shrinking, universal APK with all CPU ABIs). It is signed and can be installed on **any device that meets the minimum OS version**, the same way you install apps outside the Play Store.
 
 ### What you get
 
 | | |
 |--|--|
-| **Path** | `apk1/hhg-farmers.apk` |
+| **Path** | `ready to use apk/hhg-farmers.apk` |
 | **Build type** | `release` (optimized, not a debuggable dev build) |
 | **Application ID** | `com.hhg.farmers` |
 | **Version** | `0.1.0` (versionCode `1`) |
@@ -41,7 +41,7 @@ The file in **`apk1/hhg-farmers.apk`** is a **release** build (R8 minify + resou
 Or with USB debugging:
 
 ```bash
-adb install apk1/hhg-farmers.apk
+adb install ready to use apk/hhg-farmers.apk
 ```
 
 This is a normal Android install package: sideloading is required because the app is not (yet) distributed through the Play Store.
@@ -50,7 +50,7 @@ This is a normal Android install package: sideloading is required because the ap
 
 ```bash
 ./gradlew :app:assembleRelease
-cp app/build/outputs/apk/release/app-release.apk apk1/hhg-farmers.apk
+cp app/build/outputs/apk/release/app-release.apk ready to use apk/hhg-farmers.apk
 ```
 
 ---
@@ -142,7 +142,7 @@ sdk.dir=/path/to/Android/sdk
 Outputs:
 
 - Debug: `app/build/outputs/apk/debug/app-debug.apk` (`com.hhg.farmers.debug`)
-- Release: `app/build/outputs/apk/release/app-release.apk` (`com.hhg.farmers`) — copy to `apk1/hhg-farmers.apk` for the repo distributable.
+- Release: `app/build/outputs/apk/release/app-release.apk` (`com.hhg.farmers`) — copy to `ready to use apk/hhg-farmers.apk` for the repo distributable.
 
 > **Note:** Building requires a **JDK 17** runtime. If `./gradlew` picks Java 8, set `JAVA_HOME` to a JDK 17 installation before running Gradle.
 
