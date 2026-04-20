@@ -6,12 +6,11 @@
     -->
     <!--
       XML theme is only used during the launch window (before Compose inflates).
-      We intentionally use the built-in `android:Theme.Material.Light.NoActionBar` so
-      we don't pull in MDC (Material Components for Android) just for a splash theme —
-      the Compose app uses `androidx.compose.material3` which is Kotlin-only and
-      ships no XML styles. Day/night is handled at runtime in `ui/theme/Theme.kt`.
+      MUST descend from Theme.AppCompat because MainActivity is an AppCompatActivity
+      (needed for AppCompatDelegate.setApplicationLocales to drive Marathi/English switching).
+      Day/night is handled at runtime in `ui/theme/Theme.kt` for Compose content.
     -->
-    <style name="Theme.HHGFarmers" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.HHGFarmers" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:statusBarColor">@color/hhg_orange_500</item>
         <item name="android:windowBackground">@color/white</item>
     </style>
