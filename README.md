@@ -35,7 +35,7 @@ The file in **`ready to use app/hhg-farmers.apk`** is a **release** build (R8 mi
 | **Path** | `ready to use app/hhg-farmers.apk` |
 | **Build type** | `release` (optimized, not a debuggable dev build) |
 | **Application ID** | `com.hhg.farmers` |
-| **Version** | `Version 3` (versionCode `3`) — matches **`ready-to-use/version-3.apk`**. Previous **`version-2.apk`** and **`version-1.apk`** are kept in the same folder for rollback. |
+| **Version** | `Version 4` (versionCode `4`) — matches **`ready-to-use/version-4.apk`**. Previous **`version-3.apk`**, **`version-2.apk`** (broken — AppCompat theme crash), and **`version-1.apk`** are kept in the same folder for history / rollback. |
 | **Requires Android** | **7.0 (API 24) or newer** — typical phones and tablets from ~2016 onward |
 | **Signing** | Release pipeline uses the **default debug keystore** so the project can ship an installable APK from GitHub without checking in production keys. For **Google Play**, replace this with your **upload key** in `app/build.gradle.kts`. |
 

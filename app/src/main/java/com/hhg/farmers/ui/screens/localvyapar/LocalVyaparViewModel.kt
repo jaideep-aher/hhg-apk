@@ -1,10 +1,13 @@
 package com.hhg.farmers.ui.screens.localvyapar
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hhg.farmers.data.model.LocalVyaparAd
 import com.hhg.farmers.data.repo.FarmerRepository
+import com.hhg.farmers.service.network.NetworkErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +28,8 @@ data class LocalVyaparUiState(
 
 @HiltViewModel
 class LocalVyaparViewModel @Inject constructor(
-    private val farmerRepo: FarmerRepository
+    private val farmerRepo: FarmerRepository,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LocalVyaparUiState())
@@ -44,7 +48,11 @@ class LocalVyaparViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     _state.update {
-                        it.copy(loading = false, ads = emptyList(), error = e.message ?: "error")
+                        it.copy(
+                            loading = false,
+                            ads = emptyList(),
+                            error = NetworkErrors.toUserMessage(appContext, e)
+                        )
                     }
                 }
         }

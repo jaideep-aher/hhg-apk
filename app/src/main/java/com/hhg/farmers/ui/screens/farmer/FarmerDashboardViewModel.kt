@@ -1,5 +1,6 @@
 package com.hhg.farmers.ui.screens.farmer
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hhg.farmers.data.auth.AuthRepository
@@ -7,10 +8,12 @@ import com.hhg.farmers.data.model.FarmerDataPage
 import com.hhg.farmers.data.model.PattiTotals
 import com.hhg.farmers.data.repo.FarmerRepository
 import com.hhg.farmers.service.location.LocationProvider
+import com.hhg.farmers.service.network.NetworkErrors
 import com.hhg.farmers.service.offline.OfflineCache
 import com.hhg.farmers.service.share.PdfExporter
 import com.hhg.farmers.service.telemetry.TelemetryManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,7 +41,8 @@ class FarmerDashboardViewModel @Inject constructor(
     private val offlineCache: OfflineCache,
     private val pdfExporter: PdfExporter,
     private val location: LocationProvider,
-    private val telemetry: TelemetryManager
+    private val telemetry: TelemetryManager,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FarmerUiState())
@@ -94,11 +98,22 @@ class FarmerDashboardViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            // Keep cached page visible if we had one.
-                            errorMessage = if (it.page == null) t.message ?: "Something went wrong" else null
+                            // Keep cached page visible if we had one. Error copy is
+                            // taken from the safe NetworkErrors mapper so we never
+                            // leak backend URLs / host names into the UI.
+                            errorMessage = if (it.page == null) {
+                                NetworkErrors.toUserMessage(appContext, t)
+                            } else {
+                                null
+                            }
                         )
                     }
-                    telemetry.track("farmer_load_failed", mapOf("reason" to (t.message ?: "unknown")))
+                    // Telemetry uses exception class name (not message) so logs can
+                    // still distinguish causes without recording any URL text.
+                    telemetry.track(
+                        "farmer_load_failed",
+                        mapOf("reason" to (t::class.java.simpleName ?: "unknown"))
+                    )
                 }
         }
     }

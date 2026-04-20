@@ -1,12 +1,15 @@
 package com.hhg.farmers.ui.screens.home
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hhg.farmers.service.location.LocationProvider
+import com.hhg.farmers.service.network.NetworkErrors
 import com.hhg.farmers.service.weather.WeatherLocation
 import com.hhg.farmers.service.weather.WeatherResponse
 import com.hhg.farmers.service.weather.WeatherService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +27,8 @@ data class WeatherUiState(
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
     private val weatherService: WeatherService,
-    private val locationProvider: LocationProvider
+    private val locationProvider: LocationProvider,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WeatherUiState())
@@ -52,7 +56,10 @@ class WeatherViewModel @Inject constructor(
                     )
                 }
                 .onFailure {
-                    _state.value = WeatherUiState(isLoading = false, errorMessage = it.message)
+                    _state.value = WeatherUiState(
+                        isLoading = false,
+                        errorMessage = NetworkErrors.toUserMessage(appContext, it)
+                    )
                 }
         }
     }

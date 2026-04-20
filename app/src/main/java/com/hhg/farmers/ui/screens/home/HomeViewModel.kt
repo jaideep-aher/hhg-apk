@@ -1,13 +1,20 @@
 package com.hhg.farmers.ui.screens.home
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hhg.farmers.data.auth.AuthRepository
 import com.hhg.farmers.data.model.Notice
 import com.hhg.farmers.data.repo.FarmerRepository
+import com.hhg.farmers.service.network.NetworkErrors
 import com.hhg.farmers.service.telemetry.TelemetryManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -28,7 +35,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val auth: AuthRepository,
     private val farmerRepo: FarmerRepository,
-    private val telemetry: TelemetryManager
+    private val telemetry: TelemetryManager,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -65,10 +73,22 @@ class HomeViewModel @Inject constructor(
                     _events.value = HomeEvent.NavigateToFarmer(uid)
                 }
                 .onFailure { t ->
-                    telemetry.track("home_search_failed", mapOf("reason" to (t.message ?: "unknown")))
+                    // Log by exception type only — never forward the raw message to
+                    // telemetry or UI, because retrofit/okhttp messages can embed
+                    // backend URLs.
+                    telemetry.track(
+                        "home_search_failed",
+                        mapOf("reason" to (t::class.java.simpleName ?: "unknown"))
+                    )
                     val err = when {
-                        t.message?.contains("not found", ignoreCase = true) == true -> SearchError.NotFound
                         t is IllegalArgumentException -> SearchError.Invalid
+                        // Check "not found" marker on our own repo exception FIRST,
+                        // before network classification, since a real 404 comes back
+                        // as an HttpException but our repo may wrap it.
+                        t.message?.contains("not found", ignoreCase = true) == true -> SearchError.NotFound
+                        !NetworkErrors.isOnline(appContext) -> SearchError.Offline
+                        t is UnknownHostException || t is ConnectException ||
+                            t is SocketTimeoutException || t is IOException -> SearchError.Offline
                         else -> SearchError.Generic
                     }
                     _state.update { it.copy(searchError = err) }
@@ -96,7 +116,7 @@ data class HomeUiState(
     val noticesLoading: Boolean = false
 )
 
-enum class SearchError { Invalid, NotFound, Generic }
+enum class SearchError { Invalid, NotFound, Generic, Offline }
 
 sealed interface HomeEvent {
     data class NavigateToFarmer(val uid: String) : HomeEvent

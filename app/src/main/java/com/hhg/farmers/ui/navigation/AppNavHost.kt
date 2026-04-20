@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -17,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.hhg.farmers.R
 import com.hhg.farmers.data.session.SessionStore
+import com.hhg.farmers.permissions.isLocationGranted
 import com.hhg.farmers.ui.components.LoadingState
 import com.hhg.farmers.ui.screens.about.AboutScreen
 import com.hhg.farmers.ui.screens.aitrend.AiTrendScreen
@@ -44,14 +46,20 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var navStart by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(sessionStore) {
         val onboarded = sessionStore.onboarded.first()
         val permDone = sessionStore.permissionSetupDone.first()
+        // Location is a HARD requirement (delivery-app style). Even if the user
+        // already completed permission setup on a previous app install/version, if
+        // they've since revoked location in system Settings we send them back to
+        // the gate until it's granted again.
+        val locationOk = isLocationGranted(context)
         navStart = when {
             !onboarded -> Routes.ONBOARDING
-            !permDone -> Routes.PERMISSION_SETUP
+            !permDone || !locationOk -> Routes.PERMISSION_SETUP
             else -> Routes.HOME
         }
     }

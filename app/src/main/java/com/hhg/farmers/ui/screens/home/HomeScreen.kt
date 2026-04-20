@@ -187,6 +187,7 @@ private fun SearchCard(
                 val msg = when (error) {
                     SearchError.Invalid -> stringResource(R.string.home_invalid_aadhaar)
                     SearchError.NotFound -> stringResource(R.string.home_not_found)
+                    SearchError.Offline -> stringResource(R.string.error_no_internet)
                     SearchError.Generic -> stringResource(R.string.home_error_generic)
                 }
                 Text(

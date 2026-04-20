@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  English (en) — override used ONLY when the farmer explicitly picks English in
+  Settings. The app's default locale is Marathi (values/strings.xml); this file
+  exists so that the Language toggle in Settings has a place to switch TO.
+-->
+<resources>
+    <string name="app_name">Hundekari</string>
+    <string name="app_name_mr">हनुमान हुंडेकरी</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_market_rate">Market Rate</string>
+    <string name="nav_ai_trend">AI Market Trend</string>
+    <string name="nav_seeds">Seeds</string>
+    <string name="nav_local_vyapari">Local Vyapari</string>
+    <string name="nav_about">About</string>
+    <string name="nav_logout">Log out</string>
+
+    <!-- Home / login -->
+    <string name="home_search_title">Search your account</string>
+    <string name="home_aadhaar_hint">Enter last 5 digits of Aadhaar</string>
+    <string name="home_search_button">Search</string>
+    <string name="home_notices_title">Notices</string>
+    <string name="home_notices_empty">No notices right now.</string>
+    <string name="home_ai_trend_cta">AI Market Trend</string>
+    <string name="home_invalid_aadhaar">Please enter a valid 5-digit Aadhaar number.</string>
+    <string name="home_not_found">Farmer not found. Please enter a valid Aadhaar number.</string>
+    <string name="home_checking">Valid number. Checking if data exists&#8230;</string>
+    <string name="home_error_generic">Something went wrong. Please try again.</string>
+
+    <!-- Farmer dashboard -->
+    <string name="farmer_aadhaar_label">Aadhaar No.</string>
+    <string name="farmer_mobile_label">Mobile No.</string>
+    <string name="farmer_address_label">Address</string>
+    <string name="farmer_no_mobile_info">Contact the HHG manager to update your mobile number.</string>
+    <string name="farmer_no_address_info">Contact the HHG manager to update your address.</string>
+    <string name="farmer_daily_market_cta">Daily Market Rates</string>
+    <string name="farmer_ai_trend_cta">AI Market Trend (2024-25)</string>
+    <string name="farmer_patti_title">Patti / Records</string>
+    <string name="farmer_patti_subtitle">Showing records for the selected date range</string>
+    <string name="farmer_no_data">No data found</string>
+    <string name="farmer_back">Back</string>
+    <string name="farmer_share_patti">Share patti</string>
+
+    <!-- Market rate -->
+    <string name="market_hub_hundekari_title">Hanuman Hundekari rates</string>
+    <string name="market_hub_hundekari_subtitle">Rates as per Mumbai broker</string>
+    <string name="market_hub_hundekari_cta">View Hundekari rates</string>
+    <string name="market_hub_other_title">Other market rates</string>
+    <string name="market_hub_other_subtitle">Pune, Mumbai and other markets</string>
+    <string name="market_hub_other_cta">View other market rates</string>
+    <string name="hundekari_today_title">Today\'s Hundekari rates</string>
+    <string name="hundekari_today_subtitle">Highest rate per item, updated today</string>
+    <string name="rate_item_label">Item</string>
+    <string name="rate_value_label">Rate (₹)</string>
+    <string name="rate_no_data">No rates available for today yet.</string>
+
+    <string name="nav_settings">Settings</string>
+
+    <!-- AI Trend screen -->
+    <string name="ai_trend_powered_by">Powered by AI</string>
+    <string name="ai_trend_updated">Updated: %s</string>
+    <string name="ai_trend_disclaimer">AI predictions are indicative only. Actual market rates may vary. Always verify with your local APMC before selling.</string>
+
+    <string name="notice_detail_title">Notice</string>
+
+    <!-- Other markets -->
+    <string name="other_markets_title">Other Market Rates</string>
+    <string name="other_markets_min">Min</string>
+    <string name="other_markets_max">Max</string>
+    <string name="other_markets_modal">Modal</string>
+    <string name="rates_as_of">Rates as of %s</string>
+    <string name="rates_source_apmc">Source: APMC / Agmarknet (indicative)</string>
+
+    <!-- Settings (English — same as default) -->
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_preferences">Preferences</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_farmer_id">Farmer ID (Aadhaar last 5)</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_current">English</string>
+    <string name="settings_language_option_mr">मराठी (Marathi)</string>
+    <string name="settings_language_option_en">English</string>
+    <string name="settings_language_picker_title">Choose language</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_contact">Office Location</string>
+    <string name="settings_logout_confirm_title">Log out?</string>
+    <string name="settings_logout_confirm_body">You will need to enter your Aadhaar number again to access your patti.</string>
+    <string name="settings_cancel">Cancel</string>
+
+    <!-- Onboarding -->
+    <string name="onboard_page1_title">Your records, one tap away</string>
+    <string name="onboard_page1_body">View your patti entries, payment history, and totals — all in one place. Share as PDF anytime.</string>
+    <string name="onboard_page2_title">Live market rates</string>
+    <string name="onboard_page2_body">Today\'s Hundekari rates plus APMC data from Lasalgaon, Pune, Mumbai, and Nashik — updated daily.</string>
+    <string name="onboard_page3_title">AI market trends</string>
+    <string name="onboard_page3_body">AI-powered weekly analysis of onion, tomato, garlic, and potato rates. Plan your sales smarter.</string>
+    <string name="onboard_get_started">Get Started</string>
+    <string name="onboard_skip">Skip</string>
+    <string name="onboard_next">Next</string>
+
+    <!-- Weather card -->
+    <string name="weather_subtitle_ghargaon">Ghargaon (Sangamner taluka) · 422620</string>
+    <string name="weather_subtitle_device">Weather for your current location</string>
+
+    <!-- Generic -->
+    <string name="loading">Loading&#8230;</string>
+    <string name="retry">Retry</string>
+    <string name="coming_soon">Coming soon</string>
+    <string name="version_label">Version</string>
+
+    <!-- Network / backend errors (safe, never leak URLs or host names) -->
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_no_internet">No internet connection. Please turn on Wi-Fi or mobile data.</string>
+    <string name="error_timeout">The server took too long to respond. Please try again.</string>
+    <string name="error_server">Server issue. Please try again in a while.</string>
+    <string name="error_request_failed">Could not complete the request.</string>
+    <string name="error_not_found">Information not found.</string>
+    <string name="error_secure_connection">Could not establish a secure connection.</string>
+    <string name="offline_banner">You are offline — please check your internet connection.</string>
+
+    <string name="location_permission_rationale">Location helps us show you relevant market rates and verify your area.</string>
+
+    <!-- Startup permission sheet -->
+    <string name="permission_setup_title">App access</string>
+    <string name="permission_setup_intro">The app needs the permissions below to work. Location access is required.</string>
+    <string name="permission_required_banner">The app cannot continue without location access.</string>
+    <string name="permission_bullet_location_required">Location (required) — for local weather and correct market context</string>
+    <string name="permission_bullet_location">Location — local weather, market context, and future area-based features</string>
+    <string name="permission_bullet_notifications">Notifications — alerts and messages from HHG (when we send them)</string>
+    <string name="permission_bullet_storage">Photos &amp; videos — attach or save images where the app supports it</string>
+    <string name="permission_setup_allow">Allow permissions</string>
+    <string name="permission_open_settings">Open Settings</string>
+    <string name="permission_denied_retry">Location access is required. Please try again.</string>
+    <string name="permission_denied_permanently">Location is turned off for this app. Enable it from Settings › Apps › Hundekari › Permissions.</string>
+    <string name="permission_setup_note">Location is required to continue. Notifications and photos are optional and can be changed later in system Settings.</string>
+
+    <!-- Drawer / menu -->
+    <string name="menu_open">Open menu</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_market">Market Rates</string>
+    <string name="menu_ai_trend">AI Market Trend</string>
+    <string name="menu_seeds">Seeds</string>
+    <string name="menu_about">About Us</string>
+    <string name="menu_contact">Contact</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_tagline">Ghargaon, Sangamner taluka · 422620</string>
+
+    <!-- Local Vyapar -->
+    <string name="local_vyapar_title">Local trade</string>
+    <string name="local_vyapar_headline">Available listings</string>
+    <string name="local_vyapar_disclaimer">All listings are verified by HHG. This screen is for information only — interest is not recorded here; contact HHG directly.</string>
+    <string name="local_vyapar_search_hint">Search…</string>
+    <string name="local_vyapar_sort_price">Price</string>
+    <string name="local_vyapar_sort_date">Date</string>
+    <string name="local_vyapar_sort_weight">Weight</string>
+    <string name="local_vyapar_toggle_order">Toggle sort order</string>
+    <string name="local_vyapar_per_kg">per kg</string>
+    <string name="local_vyapar_readonly_cta">Cannot register interest (read only)</string>
+
+    <!-- About screen -->
+    <string name="about_title">About Us</string>
+    <string name="about_heading">Hanuman Hundekari</string>
+    <string name="about_body">Hanuman Hundekari is a family-run vegetable trading business based in Ghargaon, Sangamner taluka, Ahmednagar district (PIN 422620), Maharashtra. For decades we have connected local farmers with wholesale markets in Mumbai and Pune, offering fair prices and timely payments. This app brings your patti, today\'s mandi rates, and market trends to your phone — so you spend less time calling and more time farming.</string>
+    <string name="about_built_for">Built for the farmers of Ghargaon and the Sangamner taluka region.</string>
+    <string name="about_story_title">Our story</string>
+    <string name="about_story_p1">Since 1967 we started from a small hundekari that helped farmers bring produce to market. As hundekari grew in popularity, our founder Mr. Shivaji Gangadhar Aher began selling fertilisers and pesticides to visitors — now known as Hanuman Krishi Seva Kendra.</string>
+    <string name="about_story_p2">Despite many challenges, Hanuman Hundekari is a trusted name in Ghargaon and the plateau region, with a long history of supporting farmers. Our commitment to the farming community has remained strong for decades.</string>
+    <string name="about_stat_downloads">1000+ downloads</string>
+    <string name="about_stat_years">50+ years of service</string>
+    <string name="about_business_title">Our businesses</string>
+    <string name="about_card_krishi_title">Hanuman Krishi Seva Kendra</string>
+    <string name="about_card_krishi_body">Wholesale fertilisers, medicines and seeds</string>
+    <string name="about_card_krishi_phone">Contact: 9890466423</string>
+    <string name="about_card_movers_title">Hanuman Earthmovers</string>
+    <string name="about_card_movers_body">JCB service</string>
+    <string name="about_card_movers_phone">Contact: 9860081723</string>
+    <string name="about_card_hh_title">Hanuman Hundekari</string>
+    <string name="about_card_hh_body">Onion crates, grain bags, rope, twine and event supplies.</string>
+    <string name="about_card_hh_phone">Contact: 9890466423</string>
+    <string name="about_location_title">Location</string>
+    <string name="about_location_place">Hanuman Hundekari — Ghargaon (Sangamner taluka) · 422620</string>
+    <string name="about_directions">Get directions</string>
+    <string name="about_footer_credit">Developed by Agrofix Technologies Pvt. Ltd.</string>
+
+    <!-- Contact screen -->
+    <string name="contact_title">Contact</string>
+    <string name="contact_office_label">Office</string>
+    <string name="contact_office_value">Ghargaon, Sangamner taluka, Ahmednagar — 422620, Maharashtra</string>
+    <string name="contact_phone_label">Phone</string>
+    <string name="contact_phone_value">Contact HHG manager</string>
+    <string name="contact_whatsapp_label">WhatsApp</string>
+    <string name="contact_whatsapp_value">Send a message through the app</string>
+    <string name="contact_hours_label">Office hours</string>
+    <string name="contact_hours_value">Mon–Sat, 9:00 AM – 7:00 PM</string>
+
+    <string name="share_patti_subject">My HHG patti</string>
+</resources>

@@ -74,21 +74,22 @@
     <string name="rates_as_of">%s चे भाव</string>
     <string name="rates_source_apmc">स्रोत: APMC / Agmarknet (अंदाजे)</string>
 
-    <!-- Settings -->
-    <string name="settings_section_account">खाते</string>
-    <string name="settings_section_preferences">प्राधान्य</string>
-    <string name="settings_section_about">माहिती</string>
-    <string name="settings_farmer_id">शेतकरी ID (आधारचे शेवटचे 5 अंक)</string>
-    <string name="settings_language">भाषा</string>
-    <string name="settings_language_current">मराठी</string>
-    <string name="settings_language_option_mr">मराठी</string>
-    <string name="settings_language_option_en">इंग्रजी</string>
-    <string name="settings_language_picker_title">भाषा निवडा</string>
-    <string name="settings_notifications">सूचना</string>
-    <string name="settings_contact">कार्यालय स्थान</string>
-    <string name="settings_logout_confirm_title">बाहेर पडायचे?</string>
-    <string name="settings_logout_confirm_body">पुन्हा आपला डेटा पाहण्यासाठी आधार क्रमांक टाकावा लागेल.</string>
-    <string name="settings_cancel">रद्द करा</string>
+    <!-- Settings (INTENTIONALLY ENGLISH in every locale so the Language toggle
+         is always discoverable — matches values/strings.xml and values-en/strings.xml) -->
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_preferences">Preferences</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_farmer_id">Farmer ID (Aadhaar last 5)</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_current">Marathi</string>
+    <string name="settings_language_option_mr">मराठी (Marathi)</string>
+    <string name="settings_language_option_en">English</string>
+    <string name="settings_language_picker_title">Choose language</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_contact">Office Location</string>
+    <string name="settings_logout_confirm_title">Log out?</string>
+    <string name="settings_logout_confirm_body">You will need to enter your Aadhaar number again to access your patti.</string>
+    <string name="settings_cancel">Cancel</string>
 
     <!-- Onboarding -->
     <string name="onboard_page1_title">पट्ट्या एका क्लिकवर</string>
@@ -111,18 +112,32 @@
     <string name="coming_soon">लवकरच येत आहे</string>
     <string name="version_label">आवृत्ती</string>
 
+    <!-- Network / backend errors (safe, never leak URLs or host names) -->
+    <string name="error_generic">काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="error_no_internet">इंटरनेट कनेक्शन नाही. कृपया Wi-Fi किंवा मोबाईल डेटा चालू करा.</string>
+    <string name="error_timeout">सर्व्हरकडून उत्तर मिळायला वेळ लागला. पुन्हा प्रयत्न करा.</string>
+    <string name="error_server">सर्व्हरची समस्या आहे. थोड्या वेळाने पुन्हा प्रयत्न करा.</string>
+    <string name="error_request_failed">विनंती पूर्ण होऊ शकली नाही.</string>
+    <string name="error_not_found">माहिती सापडली नाही.</string>
+    <string name="error_secure_connection">सुरक्षित कनेक्शन बनवता आले नाही.</string>
+    <string name="offline_banner">तुम्ही ऑफलाइन आहात — इंटरनेट कनेक्शन तपासा.</string>
+
     <!-- Permissions / location -->
     <string name="location_permission_rationale">स्थान माहिती मिळाल्याने योग्य बाजारभाव दाखवता येतील.</string>
 
     <!-- Startup permission sheet -->
     <string name="permission_setup_title">अॅप परवानग्या</string>
-    <string name="permission_setup_intro">खालील परवानग्या दिल्यास अॅप चांगले चालेल. नंतर सिस्टम सेटिंग्ज मधून बदलू शकता.</string>
+    <string name="permission_setup_intro">अॅप चालवण्यासाठी खालील परवानग्या लागतील. स्थान परवानगी देणे आवश्यक आहे.</string>
+    <string name="permission_required_banner">स्थान परवानगी दिल्याशिवाय अॅप सुरू होणार नाही.</string>
+    <string name="permission_bullet_location_required">स्थान (आवश्यक) — हवामान व योग्य मार्केट भाव दाखवण्यासाठी</string>
     <string name="permission_bullet_location">स्थान — हवामान, बाजार संदर्भ व पुढील क्षेत्र-आधारित सुविधा</string>
     <string name="permission_bullet_notifications">सूचना — HHG कडून येणारे मेसेज व सूचना</string>
     <string name="permission_bullet_storage">फोटो व व्हिडिओ — जिथे अॅप सपोर्ट करेल तिथे जोडणे किंवा जतन करणे</string>
     <string name="permission_setup_allow">परवानग्या द्या</string>
-    <string name="permission_setup_skip">आत्ता नको — अॅप मध्ये जा</string>
-    <string name="permission_setup_note">काही परवानग्या नाकारल्या तरी नंतर सेटिंग्ज › ॲप्स › HHG › परवानग्या मधून चालू करू शकता.</string>
+    <string name="permission_open_settings">सेटिंग्ज उघडा</string>
+    <string name="permission_denied_retry">स्थान परवानगी आवश्यक आहे. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="permission_denied_permanently">स्थान परवानगी बंद आहे. सेटिंग्ज › ॲप्स › Hundekari › परवानग्या मधून स्थान चालू करा.</string>
+    <string name="permission_setup_note">स्थान परवानगी अॅप पुढे जाण्यासाठी लागते. सूचना आणि फोटो परवानग्या ऐच्छिक आहेत व नंतर सेटिंग्ज मधून बदलू शकता.</string>
 
     <!-- Drawer / menu -->
     <string name="menu_open">मेन्यू उघडा</string>
