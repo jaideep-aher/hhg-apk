@@ -1,6 +1,7 @@
 package com.hhg.farmers.di
 
 import com.hhg.farmers.BuildConfig
+import com.hhg.farmers.data.repo.FarmerApi
 import com.hhg.farmers.service.weather.WeatherService
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -58,6 +59,10 @@ object NetworkModule {
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
+
+    @Provides @Singleton
+    fun provideFarmerApi(@Named("main") retrofit: Retrofit): FarmerApi =
+        retrofit.create(FarmerApi::class.java)
 
     @Provides @Singleton
     fun provideWeatherService(@Named("weather") retrofit: Retrofit): WeatherService =

@@ -138,7 +138,8 @@ private fun RateRow(rate: VendorRate) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = rate.item,
+                    // Prefer Marathi name from DB; fall back to English if not available
+                    text = rate.itemMr ?: rate.item,
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium
@@ -158,13 +159,13 @@ private fun RateRow(rate: VendorRate) {
 /* ----------------------------- Previews ----------------------------- */
 
 private val previewRates = listOf(
-    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "कांदा", highestRate = 32.5),
-    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "टोमॅटो", highestRate = 45.0),
-    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "बटाटा", highestRate = 28.75),
-    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "मिरची", highestRate = 52.0),
-    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "कोथिंबीर", highestRate = 38.25),
-    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "मेथी", highestRate = 41.5),
-    VendorRate(date = "2026-04-19", vendorName = "हनुमान हुंडेकरी", item = "पालक", highestRate = 35.0)
+    VendorRate(date = "2026-04-19", item = "Onion",   itemMr = "कांदा",      highestRate = 32.5),
+    VendorRate(date = "2026-04-19", item = "Tomato",  itemMr = "टोमॅटो",    highestRate = 45.0),
+    VendorRate(date = "2026-04-19", item = "Potato",  itemMr = "बटाटा",     highestRate = 28.75),
+    VendorRate(date = "2026-04-19", item = "Chilli",  itemMr = "मिरची",     highestRate = 52.0),
+    VendorRate(date = "2026-04-19", item = "Coriander", itemMr = "कोथिंबीर", highestRate = 38.25),
+    VendorRate(date = "2026-04-19", item = "Methi",   itemMr = "मेथी",     highestRate = 41.5),
+    VendorRate(date = "2026-04-19", item = "Spinach", itemMr = "पालक",      highestRate = 35.0)
 )
 
 @Preview(name = "Hundekari rates", showBackground = true, locale = "mr")

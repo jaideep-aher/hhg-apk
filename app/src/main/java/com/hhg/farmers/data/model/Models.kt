@@ -60,10 +60,14 @@ data class MarketRate(
 @JsonClass(generateAdapter = true)
 data class VendorRate(
     val date: String,
-    val vendorName: String,
-    val item: String,
+    val item: String,             // English name (vegetables.name_eng)
+    val itemMr: String? = null,   // Marathi name (vegetables.name_mar)
     val highestRate: Double
 )
+
+/** Returned by GET /api/farmer/exists/:uid */
+@JsonClass(generateAdapter = true)
+data class FarmerExistsResponse(val exists: Boolean)
 
 @JsonClass(generateAdapter = true)
 data class ItemSummary(

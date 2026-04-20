@@ -124,15 +124,12 @@ class MockFarmerRepository @Inject constructor() : FarmerRepository {
     override suspend fun getVendorItemRatesForItem(item: String): List<VendorRate> {
         delay(400)
         val today = LocalDate.now()
-        return vendors.flatMap { v ->
-            (0..2).map { d ->
-                VendorRate(
-                    date = today.minusDays(d.toLong()).toString(),
-                    vendorName = v,
-                    item = item,
-                    highestRate = Random.nextDouble(20.0, 60.0)
-                )
-            }
+        return (0..6).map { d ->
+            VendorRate(
+                date = today.minusDays(d.toLong()).toString(),
+                item = item,
+                highestRate = Random.nextDouble(20.0, 60.0)
+            )
         }
     }
 
@@ -142,7 +139,6 @@ class MockFarmerRepository @Inject constructor() : FarmerRepository {
         return items.map { item ->
             VendorRate(
                 date = today,
-                vendorName = "हनुमान हुंडेकरी",
                 item = item,
                 highestRate = Random.nextDouble(18.0, 55.0)
             )

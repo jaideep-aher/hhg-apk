@@ -5,6 +5,7 @@ import com.hhg.farmers.data.auth.AuthRepository
 import com.hhg.farmers.data.auth.UidAuthRepository
 import com.hhg.farmers.data.repo.FarmerRepository
 import com.hhg.farmers.data.repo.MockFarmerRepository
+import com.hhg.farmers.data.repo.RetrofitFarmerRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -23,9 +24,9 @@ object RepositoryModule {
 
     @Provides @Singleton
     fun provideFarmerRepository(
-        mock: MockFarmerRepository
-        // real: RetrofitFarmerRepository — add when backend REST endpoints exist
-    ): FarmerRepository = if (BuildConfig.ENABLE_MOCK_REPO) mock else mock
+        mock: MockFarmerRepository,
+        real: RetrofitFarmerRepository
+    ): FarmerRepository = if (BuildConfig.ENABLE_MOCK_REPO) mock else real
 }
 
 @Module
