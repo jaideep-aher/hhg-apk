@@ -1,5 +1,8 @@
 package com.hhg.farmers.ui.screens.home
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -78,12 +81,24 @@ fun HomeScreen(
     onFarmerFound: (uid: String) -> Unit,
     onAiTrendClick: () -> Unit,
     onNoticeClick: (title: String, content: String) -> Unit = { _, _ -> },
+    onMenuClick: (() -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel(),
     weatherViewModel: WeatherViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val event by viewModel.events.collectAsStateWithLifecycle()
     val weatherState by weatherViewModel.state.collectAsStateWithLifecycle()
+
+    // Ask for location permission on first composition. We don't block the UI
+    // on the result — weather + market rates work without it. If the user grants,
+    // future features (geo-tagged patti, area-specific alerts) will pick it up.
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { /* ignore result — LocationProvider will check at call time */ }
+
+    LaunchedEffect(Unit) {
+        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
 
     LaunchedEffect(event) {
         when (val e = event) {
@@ -95,7 +110,7 @@ fun HomeScreen(
         }
     }
 
-    Scaffold(topBar = { AppTopBar() }) { innerPadding ->
+    Scaffold(topBar = { AppTopBar(onMenuClick = onMenuClick) }) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

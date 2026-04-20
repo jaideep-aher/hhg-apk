@@ -108,6 +108,34 @@
     <!-- Permissions / location -->
     <string name="location_permission_rationale">स्थान माहिती मिळाल्याने योग्य बाजारभाव दाखवता येतील.</string>
 
+    <!-- Drawer / menu -->
+    <string name="menu_open">मेन्यू उघडा</string>
+    <string name="menu_home">मुख्यपृष्ठ</string>
+    <string name="menu_market">मार्केट भाव</string>
+    <string name="menu_ai_trend">AI मार्केट ट्रेंड</string>
+    <string name="menu_seeds">बियाणे</string>
+    <string name="menu_about">आमच्याबद्दल</string>
+    <string name="menu_contact">संपर्क</string>
+    <string name="menu_settings">सेटिंग्ज</string>
+    <string name="menu_tagline">संगमनेर, महाराष्ट्र</string>
+
+    <!-- About screen -->
+    <string name="about_title">आमच्याबद्दल</string>
+    <string name="about_heading">हनुमान हुंडेकरी</string>
+    <string name="about_body">हनुमान हुंडेकरी ही संगमनेर, महाराष्ट्र येथील जुनी भाजीपाला व्यापारी पेढी आहे. अनेक वर्षांपासून आम्ही स्थानिक शेतकऱ्यांना मुंबई व पुण्याच्या होलसेल मार्केटशी जोडून योग्य भाव आणि वेळेवर पेमेंट देण्याचे काम करतो. या अॅप मध्ये तुम्हाला तुमची पट्टी, आजचे मार्केट भाव आणि ट्रेंड मिळतील — त्यामुळे फोन लावण्यात कमी वेळ जाईल आणि शेतीला जास्त वेळ देता येईल.</string>
+    <string name="about_built_for">संगमनेर परिसरातील शेतकऱ्यांसाठी बनवले आहे.</string>
+
+    <!-- Contact screen -->
+    <string name="contact_title">संपर्क</string>
+    <string name="contact_office_label">कार्यालय</string>
+    <string name="contact_office_value">संगमनेर, अहमदनगर, महाराष्ट्र</string>
+    <string name="contact_phone_label">फोन</string>
+    <string name="contact_phone_value">HHG व्यवस्थापकाशी संपर्क साधा</string>
+    <string name="contact_whatsapp_label">व्हॉट्सअप</string>
+    <string name="contact_whatsapp_value">अॅप मधून मेसेज पाठवा</string>
+    <string name="contact_hours_label">कार्यालय वेळा</string>
+    <string name="contact_hours_value">सोम–शनि, सकाळी ९:०० – संध्या ७:००</string>
+
     <!-- Share -->
     <string name="share_patti_subject">माझी HHG पट्टी</string>
 </resources>

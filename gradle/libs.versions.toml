@@ -1,8 +1,10 @@
 [versions]
 # Core build
-agp = "8.13.2"
-kotlin = "2.0.21"
-ksp = "2.0.21-1.0.28"
+agp = "9.1.1"
+kotlin = "2.2.10"
+# KSP version must match the Kotlin version prefix exactly.
+# https://github.com/google/ksp/releases  —  for Kotlin 2.2.10 use 2.2.10-2.0.x
+ksp = "2.2.10-2.0.2"
 
 # AndroidX / Compose
 compose-bom = "2024.12.01"
@@ -21,7 +23,8 @@ moshi = "1.15.1"
 coroutines = "1.9.0"
 
 # DI
-hilt = "2.52"
+# Hilt 2.53+ fixes the KSP classloader issue — https://github.com/google/dagger/issues/3965
+hilt = "2.56.2"
 hilt-navigation-compose = "1.2.0"
 hilt-work = "1.2.0"
 

@@ -3,13 +3,17 @@ package com.hhg.farmers.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.hhg.farmers.R
 import com.hhg.farmers.data.session.SessionStore
+import com.hhg.farmers.ui.screens.about.AboutScreen
 import com.hhg.farmers.ui.screens.aitrend.AiTrendScreen
+import com.hhg.farmers.ui.screens.contact.ContactScreen
 import com.hhg.farmers.ui.screens.farmer.FarmerDashboardScreen
 import com.hhg.farmers.ui.screens.home.HomeScreen
 import com.hhg.farmers.ui.screens.marketrate.HundekariRatesScreen
@@ -17,12 +21,15 @@ import com.hhg.farmers.ui.screens.marketrate.MarketRateHubScreen
 import com.hhg.farmers.ui.screens.notice.NoticeDetailScreen
 import com.hhg.farmers.ui.screens.onboarding.OnboardingScreen
 import com.hhg.farmers.ui.screens.othermarkets.OtherMarketsScreen
+import com.hhg.farmers.ui.screens.placeholder.PlaceholderScreen
 import com.hhg.farmers.ui.screens.settings.SettingsScreen
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     sessionStore: SessionStore? = null,
+    /** Invoked when a root screen's hamburger menu icon is tapped. */
+    onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -57,7 +64,8 @@ fun AppNavHost(
                 onAiTrendClick = { navController.navigate(Routes.AI_TREND) },
                 onNoticeClick = { title, content ->
                     navController.navigate(Routes.noticeDetail(title, content))
-                }
+                },
+                onMenuClick = onOpenDrawer
             )
         }
 
@@ -81,6 +89,22 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+
+        // ── Drawer destinations (About, Contact, Seeds) ───────────────────────
+        composable(Routes.ABOUT) {
+            AboutScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.CONTACT) {
+            ContactScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.SEEDS_LIST) {
+            PlaceholderScreen(
+                title = stringResource(R.string.menu_seeds),
+                onBack = { navController.popBackStack() }
             )
         }
 

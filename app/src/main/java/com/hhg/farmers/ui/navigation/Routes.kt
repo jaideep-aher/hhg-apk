@@ -37,8 +37,11 @@ object Routes {
     const val SEEDS = "seeds/{uid}"
     fun seeds(uid: String) = "seeds/$uid"
 
-    const val LOCAL_VYAPARI = "localvyapari"
+    // ── Drawer routes (accessible from the hamburger menu on root screens) ────
     const val ABOUT         = "about"
+    const val CONTACT       = "contact"
+    const val SEEDS_LIST    = "seeds"
+    const val LOCAL_VYAPARI = "localvyapari"
 
     /** Routes that should display the bottom navigation bar. */
     val bottomNavRoots = setOf(HOME, MARKET_HUB, AI_TREND, SETTINGS)
