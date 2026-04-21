@@ -1,8 +1,11 @@
 package com.hhg.farmers.ui.screens.home
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,13 +22,13 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.Button
@@ -33,26 +36,35 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -168,20 +180,22 @@ private fun SearchCard(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(R.string.home_aadhaar_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
             Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
+            AadhaarPinInput(
                 value = aadhaar,
-                onValueChange = onAadhaarChange,
-                label = { Text(stringResource(R.string.home_aadhaar_hint)) },
-                singleLine = true,
+                length = 5,
                 enabled = !isSearching,
                 isError = error != null,
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.NumberPassword,
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+                onValueChange = onAadhaarChange,
+                onSearch = onSearch,
                 modifier = Modifier.fillMaxWidth()
             )
             if (error != null) {
@@ -217,6 +231,116 @@ private fun SearchCard(
             }
         }
     }
+}
+
+/**
+ * OTP-style boxed input for the last 5 digits of Aadhaar.
+ *
+ * One hidden [BasicTextField] drives all 5 visual cells so the number keyboard,
+ * IME search action, paste, and accessibility all work naturally. The currently
+ * active cell gets a thicker orange border; filled cells show the digit.
+ */
+@Composable
+private fun AadhaarPinInput(
+    value: String,
+    length: Int,
+    enabled: Boolean,
+    isError: Boolean,
+    onValueChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    var isFocused by remember { mutableStateOf(false) }
+
+    BasicTextField(
+        value = value,
+        onValueChange = { new ->
+            val filtered = new.filter { it.isDigit() }.take(length)
+            if (filtered != value) onValueChange(filtered)
+        },
+        enabled = enabled,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.NumberPassword,
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+        textStyle = LocalTextStyle.current.copy(color = Color.Transparent),
+        cursorBrush = SolidColor(Color.Transparent),
+        interactionSource = interactionSource,
+        modifier = modifier
+            .focusRequester(focusRequester)
+            .onFocusChanged { isFocused = it.isFocused },
+        decorationBox = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        enabled = enabled
+                    ) { focusRequester.requestFocus() },
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                repeat(length) { index ->
+                    val char = value.getOrNull(index)?.toString() ?: ""
+                    val isActive = isFocused && index == value.length.coerceAtMost(length - 1) &&
+                        value.length < length
+                    val isCurrentLast = isFocused && value.length == length && index == length - 1
+
+                    val borderColor = when {
+                        isError -> MaterialTheme.colorScheme.error
+                        isActive || isCurrentLast -> HhgOrange500
+                        char.isNotEmpty() -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+                    }
+                    val bgColor = when {
+                        isError -> MaterialTheme.colorScheme.error.copy(alpha = 0.05f)
+                        isActive -> HhgOrange500.copy(alpha = 0.06f)
+                        else -> Color.Transparent
+                    }
+                    val targetBorderWidth = if (isActive || isCurrentLast || isError) 2.dp else 1.dp
+                    val borderWidthAnim by animateFloatAsState(
+                        targetValue = targetBorderWidth.value,
+                        label = "aadhaarBoxBorder"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(bgColor)
+                            .border(
+                                width = borderWidthAnim.dp,
+                                color = borderColor,
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (char.isNotEmpty()) {
+                            Text(
+                                text = char,
+                                style = MaterialTheme.typography.headlineSmall.copy(fontSize = 24.sp),
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        } else if (isActive) {
+                            // subtle caret indicator
+                            Box(
+                                modifier = Modifier
+                                    .height(22.dp)
+                                    .width(2.dp)
+                                    .background(HhgOrange500)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    )
 }
 
 @Composable

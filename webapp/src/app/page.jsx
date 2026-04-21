@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useContext } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { RocketIcon } from "@radix-ui/react-icons";
 import { Sparkles } from "lucide-react";
 import {
@@ -25,6 +25,84 @@ import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
 import { set } from "date-fns";
 import { FarmerContext } from "@/server/Context";
+
+/**
+ * OTP-style boxed input for the last 5 digits of Aadhaar.
+ *
+ * One hidden <input> drives all 5 visual cells, so the numeric keyboard
+ * (inputMode="numeric") opens on mobile, paste works, and form-submit on
+ * Enter continues to work. The current cell gets a thick orange ring.
+ */
+function AadhaarPinInput({ value, onChange, disabled, isError, length = 5 }) {
+  const inputRef = useRef(null);
+  const [focused, setFocused] = useState(false);
+
+  const focus = () => inputRef.current?.focus();
+
+  const activeIndex = Math.min(value.length, length - 1);
+  const isCompletelyFilled = value.length === length;
+
+  return (
+    <div
+      className="relative w-full select-none"
+      onClick={focus}
+      onTouchStart={focus}
+    >
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => {
+          const next = e.target.value.replace(/\D/g, "").slice(0, length);
+          onChange(next);
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        disabled={disabled}
+        type="tel"
+        inputMode="numeric"
+        pattern="\d*"
+        maxLength={length}
+        autoComplete="one-time-code"
+        aria-label="Last 5 digits of Aadhaar"
+        name="farmerid"
+        data-attr="Farmer UID Input"
+        className="absolute inset-0 h-full w-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+      />
+      <div className="flex gap-2 sm:gap-3 justify-between">
+        {Array.from({ length }).map((_, i) => {
+          const ch = value[i] ?? "";
+          const isActive =
+            focused && !isCompletelyFilled && i === activeIndex;
+          const isLastFilledActive =
+            focused && isCompletelyFilled && i === length - 1;
+
+          return (
+            <div
+              key={i}
+              className={cn(
+                "flex-1 aspect-square max-h-14 min-h-[52px] rounded-xl border-2 flex items-center justify-center text-2xl font-semibold transition-all duration-150 bg-white",
+                isError
+                  ? "border-red-500 bg-red-50"
+                  : isActive || isLastFilledActive
+                  ? "border-orange-500 bg-orange-50 shadow-[0_0_0_3px_rgba(249,115,22,0.15)]"
+                  : ch
+                  ? "border-slate-400"
+                  : "border-slate-200",
+                disabled && "opacity-60"
+              )}
+            >
+              {ch ? (
+                <span className="text-slate-900">{ch}</span>
+              ) : isActive ? (
+                <span className="inline-block h-6 w-[2px] bg-orange-500 animate-pulse" />
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function Component() {
   const { farmerId, setFarmerId } = useContext(FarmerContext);
@@ -139,19 +217,15 @@ export default function Component() {
               </h2>
             </CardHeader>
             <CardContent>
-              <Input
-                name="farmerid"
-                type="number"
-                placeholder="आधारचे शेवटचे ५ अंक टाका"
+              <p className="text-sm text-muted-foreground text-center mb-3">
+                आधारचे शेवटचे ५ अंक टाका
+              </p>
+              <AadhaarPinInput
                 value={inputNumber}
-                onChange={(e) => setInputNumber(e.target.value)}
-                className="text-lg"
-                maxLength={5}
-                minLength={5}
-                required
+                onChange={setInputNumber}
                 disabled={disableSearch}
-                autoComplete="farmerid"
-                data-attr="Farmer UID Input"
+                isError={alertState.show && alertState.type === "error"}
+                length={5}
               />
             </CardContent>
             <CardFooter>
