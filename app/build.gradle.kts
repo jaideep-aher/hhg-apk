@@ -55,10 +55,16 @@ android {
         applicationId = "com.tec.agrofixpartner"
         minSdk = 24           // Android 7.0 — covers ~97% of devices; safe for 2018+ hardware
         targetSdk = 35
-        versionCode = 13
+        versionCode = 15
         // Shown in Settings screen (from BuildConfig.VERSION_NAME) and in every
         // Firestore location ping + Analytics event. Keep this as a short string
         // that's easy to read over a support call.
+        //
+        // v15 — Aadhaar search UX upgrade:
+        //   * Home screen: single text field replaced with 5 separate OTP-style
+        //     boxes (active box highlights orange, filled boxes bold, red on
+        //     error). Applied to both native HomeScreen and the hosted `/`
+        //     webview page so the Android shell and the website stay in sync.
         //
         // v13 — Firebase connectivity fixes + location enforcement:
         //   * google-services.json updated to include com.tec.agrofixpartner.debug
@@ -72,7 +78,7 @@ android {
         //
         // v12 — diagnostics pass for empty-Firebase-dashboard debugging.
         // v11 — adds Firebase Firestore location tracking and Analytics.
-        versionName = "13"
+        versionName = "15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
