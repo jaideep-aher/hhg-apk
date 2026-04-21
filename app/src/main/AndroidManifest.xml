@@ -14,6 +14,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
+    <!-- Firebase Analytics uses the Advertising ID. Required to be declared
+         when targetSdk >= 33 (Android 13+); without it, AD_ID is zeroed out
+         and Analytics session/retention signals break. We only use it for
+         analytics (no ads / no ad personalisation) — Play Console declaration
+         must say "Analytics" only. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
     <!-- Photos / video library — REMOVED in v10 until we ship the image picker /
          PDF gallery flows. Each unused permission is a Play Data Safety form
          question we don't want + a conversion hit on install. Re-add the exact

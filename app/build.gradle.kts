@@ -55,10 +55,16 @@ android {
         applicationId = "com.tec.agrofixpartner"
         minSdk = 24           // Android 7.0 — covers ~97% of devices; safe for 2018+ hardware
         targetSdk = 35
-        versionCode = 15
+        versionCode = 16
         // Shown in Settings screen (from BuildConfig.VERSION_NAME) and in every
         // Firestore location ping + Analytics event. Keep this as a short string
         // that's easy to read over a support call.
+        //
+        // v16 — Play Store compliance:
+        //   * Declare com.google.android.gms.permission.AD_ID in the manifest
+        //     so Firebase Analytics keeps working on Android 13+ (Play Console
+        //     was warning that the permission was missing while the advertising
+        //     ID declaration said the app uses it).
         //
         // v15 — Aadhaar search UX upgrade:
         //   * Home screen: single text field replaced with 5 separate OTP-style
@@ -78,7 +84,7 @@ android {
         //
         // v12 — diagnostics pass for empty-Firebase-dashboard debugging.
         // v11 — adds Firebase Firestore location tracking and Analytics.
-        versionName = "15"
+        versionName = "16"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
