@@ -3,16 +3,21 @@ package com.hhg.farmers.permissions
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import androidx.core.content.ContextCompat
+import androidx.core.location.LocationManagerCompat
 
 /**
- * Shared helper for the "location is required" gate.
+ * Shared helpers for the two-layer location gate.
  *
  * The HHG app treats location as a hard requirement (delivery-app style): weather,
  * area-based market context, and future nearby-listing features all depend on it.
- * We block the UI until at least ONE of [ACCESS_FINE_LOCATION] or
- * [ACCESS_COARSE_LOCATION] is granted. Coarse is acceptable because the farmer-
- * facing features just need "which region are you in", not GPS precision.
+ *
+ * Layer 1 — runtime permission: at least ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION
+ * must be granted by the user in the OS dialog.
+ *
+ * Layer 2 — system services: the device's Location/GPS toggle must be on in Settings.
+ * A granted permission is useless when the service itself is off.
  */
 fun isLocationGranted(context: Context): Boolean {
     val fine = ContextCompat.checkSelfPermission(
@@ -24,4 +29,9 @@ fun isLocationGranted(context: Context): Boolean {
         Manifest.permission.ACCESS_COARSE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
     return fine || coarse
+}
+
+fun isLocationServicesEnabled(context: Context): Boolean {
+    val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return LocationManagerCompat.isLocationEnabled(lm)
 }

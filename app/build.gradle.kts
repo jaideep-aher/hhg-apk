@@ -55,26 +55,24 @@ android {
         applicationId = "com.tec.agrofixpartner"
         minSdk = 24           // Android 7.0 — covers ~97% of devices; safe for 2018+ hardware
         targetSdk = 35
-        versionCode = 12
+        versionCode = 13
         // Shown in Settings screen (from BuildConfig.VERSION_NAME) and in every
         // Firestore location ping + Analytics event. Keep this as a short string
         // that's easy to read over a support call.
         //
-        // v12 — diagnostics pass for empty-Firebase-dashboard debugging:
-        //   * FarmerLocationTracker now writes a Firestore row on EVERY login/
-        //     app-open, even when GPS fix is unavailable (lat=0/lng=0 sentinel,
-        //     source suffix "_nogps"). Any row in Firestore now proves the
-        //     end-to-end pipeline works, isolating GPS-denial vs plumbing bugs.
-        //   * Critical diagnostic log calls switched from Log.i to Log.w so
-        //     they survive R8's -assumenosideeffects Log.i stripping in release.
+        // v13 — Firebase connectivity fixes + location enforcement:
+        //   * google-services.json updated to include com.tec.agrofixpartner.debug
+        //     so Firebase initialises correctly in debug builds.
+        //   * Location services (GPS toggle) gate added — app blocks dashboard
+        //     when device GPS is off, both at startup and while running
+        //     (BroadcastReceiver on PROVIDERS_CHANGED_ACTION).
+        //   * NavTrackingViewModel: GeoTracker now fires when the active farmer
+        //     changes via WebView navigation (previously only fired on cold-start
+        //     app_open and native HomeViewModel login).
         //
-        // v11 — adds Firebase Firestore location tracking (per-farmer geo pings
-        // on login + app-open) and Firebase Analytics user-id attribution.
-        // Also bundles the pre-launch ORR fixes: 7 unsafe `!!` crashes removed,
-        // runBlocking replaced with async init, transient 5xx retry with exp
-        // backoff, HTTPS-only network security config, WebView locked to
-        // hanumanksk.in + google domains.
-        versionName = "12"
+        // v12 — diagnostics pass for empty-Firebase-dashboard debugging.
+        // v11 — adds Firebase Firestore location tracking and Analytics.
+        versionName = "13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }

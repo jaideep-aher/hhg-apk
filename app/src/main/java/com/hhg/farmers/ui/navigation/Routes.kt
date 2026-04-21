@@ -16,6 +16,9 @@ object Routes {
     /** Runtime permissions prompt — once after onboarding (or on first run if onboarding skipped). */
     const val PERMISSION_SETUP = "permission-setup"
 
+    /** Device-level location services (GPS toggle) gate — shown when perm is granted but GPS is off. */
+    const val LOCATION_SERVICES = "location-services"
+
     // ── Bottom-nav roots ──────────────────────────────────────────────────────
     /** Home tab. Hosts the website's `/` route (or `/farmers/{id}` when an id is cached). */
     const val HOME        = "home"

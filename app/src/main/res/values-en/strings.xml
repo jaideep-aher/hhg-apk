@@ -138,6 +138,14 @@
     <string name="permission_denied_permanently">Location is turned off for this app. Enable it from Settings › Apps › Hundekari › Permissions.</string>
     <string name="permission_setup_note">Location is required to continue. Notifications and photos are optional and can be changed later in system Settings.</string>
 
+    <!-- Location services gate (device GPS toggle off) -->
+    <string name="location_services_title">Location Services</string>
+    <string name="location_services_intro">This app requires Location Services (GPS) to be turned on in your device settings.</string>
+    <string name="location_services_banner">Location Services are off — the app cannot continue.</string>
+    <string name="location_services_bullet">Turn on GPS / Location Services in your device settings.</string>
+    <string name="location_services_open_settings">Open Location Settings</string>
+    <string name="location_services_note">Once you turn on Location Services, the app will continue automatically.</string>
+
     <!-- Drawer / menu -->
     <string name="menu_open">Open menu</string>
     <string name="menu_home">Home</string>

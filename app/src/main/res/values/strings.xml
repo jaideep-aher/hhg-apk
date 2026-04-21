@@ -150,6 +150,14 @@
     <string name="permission_denied_permanently">स्थान परवानगी बंद आहे. सेटिंग्ज › ॲप्स › Hundekari › परवानग्या मधून स्थान चालू करा.</string>
     <string name="permission_setup_note">स्थान परवानगी अॅप पुढे जाण्यासाठी लागते. सूचना आणि फोटो परवानग्या ऐच्छिक आहेत व नंतर सेटिंग्ज मधून बदलू शकता.</string>
 
+    <!-- Location services gate (device GPS toggle off) -->
+    <string name="location_services_title">स्थान सेवा</string>
+    <string name="location_services_intro">अॅप वापरण्यासाठी डिव्हाइसवर स्थान सेवा (GPS) चालू असणे आवश्यक आहे.</string>
+    <string name="location_services_banner">स्थान सेवा बंद आहे — अॅप पुढे जाणार नाही.</string>
+    <string name="location_services_bullet">GPS / स्थान सेवा डिव्हाइस सेटिंग्ज मध्ये चालू करा.</string>
+    <string name="location_services_open_settings">स्थान सेटिंग्ज उघडा</string>
+    <string name="location_services_note">सेटिंग्ज › स्थान मधून सेवा चालू केल्यावर अॅप आपोआप पुढे जाईल.</string>
+
     <!-- Drawer / menu -->
     <string name="menu_open">मेन्यू उघडा</string>
     <string name="menu_home">मुख्यपृष्ठ</string>

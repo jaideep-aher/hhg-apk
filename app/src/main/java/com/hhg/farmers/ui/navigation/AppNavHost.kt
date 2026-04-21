@@ -1,7 +1,13 @@
 package com.hhg.farmers.ui.navigation
 
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.location.LocationManager
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,9 +24,11 @@ import androidx.navigation.navArgument
 import com.hhg.farmers.data.model.AppConfig
 import com.hhg.farmers.data.session.SessionStore
 import com.hhg.farmers.permissions.isLocationGranted
+import com.hhg.farmers.permissions.isLocationServicesEnabled
 import com.hhg.farmers.ui.components.LoadingState
 import com.hhg.farmers.ui.screens.contact.ContactScreen
 import com.hhg.farmers.ui.screens.onboarding.OnboardingScreen
+import com.hhg.farmers.ui.screens.permissions.LocationServicesScreen
 import com.hhg.farmers.ui.screens.permissions.PermissionSetupScreen
 import com.hhg.farmers.ui.screens.settings.SettingsScreen
 import com.hhg.farmers.ui.screens.web.WebPaths
@@ -61,6 +69,7 @@ fun AppNavHost(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val trackingVm: NavTrackingViewModel = hiltViewModel()
     var navStart by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(sessionStore) {
@@ -69,10 +78,12 @@ fun AppNavHost(
         // Location is a HARD requirement (delivery-app style). Even if the user
         // already completed permission setup on a previous install, if they've
         // since revoked location in system Settings we send them back here.
-        val locationOk = isLocationGranted(context)
+        val locationPermOk = isLocationGranted(context)
+        val locationServicesOk = isLocationServicesEnabled(context)
         navStart = when {
             !onboarded -> Routes.ONBOARDING
-            !permDone || !locationOk -> Routes.PERMISSION_SETUP
+            !permDone || !locationPermOk -> Routes.PERMISSION_SETUP
+            !locationServicesOk -> Routes.LOCATION_SERVICES
             else -> Routes.HOME
         }
     }
@@ -83,9 +94,37 @@ fun AppNavHost(
         return
     }
 
-    /** Utility — mirror a detected farmerId into native SessionStore. */
+    // Detect location services being toggled OFF while the app is running.
+    // PROVIDERS_CHANGED_ACTION fires immediately when the user flips the GPS
+    // switch in quick settings or device Settings — no resume needed.
+    DisposableEffect(Unit) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: android.content.Context, intent: Intent) {
+                if (intent.action == LocationManager.PROVIDERS_CHANGED_ACTION &&
+                    !isLocationServicesEnabled(context)
+                ) {
+                    val current = navController.currentBackStackEntry?.destination?.route
+                    val gateScreens = setOf(
+                        Routes.LOCATION_SERVICES,
+                        Routes.PERMISSION_SETUP,
+                        Routes.ONBOARDING
+                    )
+                    if (current !in gateScreens) {
+                        navController.navigate(Routes.LOCATION_SERVICES) {
+                            popUpTo(Routes.HOME) { inclusive = false }
+                        }
+                    }
+                }
+            }
+        }
+        context.registerReceiver(receiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
+        onDispose { context.unregisterReceiver(receiver) }
+    }
+
+    /** Mirror a detected farmerId into SessionStore and fire a GeoTracker ping if it changed. */
     val rememberFarmerId: (String) -> Unit = { id ->
         scope.launch { sessionStore.setFarmerId(id) }
+        trackingVm.onFarmerDetected(id)
     }
 
     /** Shared back handler for detail screens reached from Settings. */
@@ -117,9 +156,20 @@ fun AppNavHost(
                     scope.launch {
                         sessionStore.setPermissionSetupDone()
                         sessionStore.setLocationPermissionAsked()
-                        navController.navigate(Routes.HOME) {
+                        val next = if (isLocationServicesEnabled(context)) Routes.HOME else Routes.LOCATION_SERVICES
+                        navController.navigate(next) {
                             popUpTo(Routes.PERMISSION_SETUP) { inclusive = true }
                         }
+                    }
+                }
+            )
+        }
+
+        composable(Routes.LOCATION_SERVICES) {
+            LocationServicesScreen(
+                onEnabled = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOCATION_SERVICES) { inclusive = true }
                     }
                 }
             )
