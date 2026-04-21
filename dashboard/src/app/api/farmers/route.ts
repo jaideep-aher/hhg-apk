@@ -59,7 +59,7 @@ export async function GET() {
     const message = err instanceof Error ? err.message : 'Unknown error'
     // Surface a hint when the usual private-key paste mistake bubbles up.
     const hint = /DECODER routines|unsupported|PEM/i.test(message)
-      ? ' — FIREBASE_PRIVATE_KEY looks malformed. Open /api/_diag for diagnostics and re-paste per the deploy docs.'
+      ? ' — FIREBASE_PRIVATE_KEY looks malformed. Open /api/diag for diagnostics and re-paste per the deploy docs.'
       : ''
     return NextResponse.json({ error: message + hint }, { status: 500 })
   }

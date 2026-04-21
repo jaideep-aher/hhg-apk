@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { firebaseConfigDiagnostics, firestore } from '@/lib/firebase'
 
 /**
- * GET /api/_diag
+ * GET /api/diag
  *
  * Read-only diagnostics for the Firebase config on whatever host the
  * dashboard is deployed to. Never returns the private key itself — only
