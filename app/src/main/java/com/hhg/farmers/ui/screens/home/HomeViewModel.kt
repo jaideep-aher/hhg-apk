@@ -72,17 +72,14 @@ class HomeViewModel @Inject constructor(
             result
                 .onSuccess {
                     telemetry.track("home_search_success")
-                    // Fire-and-forget geo ping. Uses viewModelScope so it
-                    // survives the screen transition; if GPS or Firestore
-                    // hangs, navigation still happens immediately.
-                    viewModelScope.launch {
-                        runCatching {
-                            locationTracker.recordLocation(
-                                farmerId = uid,
-                                source = FarmerLocationTracker.Source.Login
-                            )
-                        }
-                    }
+                    // App-scoped fire-and-forget: survives navigation away from
+                    // HomeScreen. If we used viewModelScope, the VM gets
+                    // cleared on NavigateToFarmer and the GPS fix + Firestore
+                    // write gets cancelled mid-flight (typical 3-5s).
+                    locationTracker.fireAndForget(
+                        farmerId = uid,
+                        source = FarmerLocationTracker.Source.Login
+                    )
                     _events.value = HomeEvent.NavigateToFarmer(uid)
                 }
                 .onFailure { t ->

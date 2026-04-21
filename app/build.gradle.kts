@@ -55,18 +55,26 @@ android {
         applicationId = "com.tec.agrofixpartner"
         minSdk = 24           // Android 7.0 — covers ~97% of devices; safe for 2018+ hardware
         targetSdk = 35
-        versionCode = 11
-        // Semver — shown in Settings, launcher info, telemetry, support tickets.
-        // Bump patch (10.0.1) for fixes, minor (10.1.0) for features, major for
-        // breaking UX changes.
+        versionCode = 12
+        // Shown in Settings screen (from BuildConfig.VERSION_NAME) and in every
+        // Firestore location ping + Analytics event. Keep this as a short string
+        // that's easy to read over a support call.
         //
-        // 10.1.0 — adds Firebase Firestore location tracking (per-farmer geo
-        // pings on login + app-open) and Firebase Analytics user-id
-        // attribution. Also bundles the pre-launch ORR fixes: 7 unsafe `!!`
-        // crashes removed, runBlocking replaced with async init, transient
-        // 5xx retry with exp backoff, HTTPS-only network security config,
-        // WebView locked to hanumanksk.in + google domains.
-        versionName = "10.1.0"
+        // v12 — diagnostics pass for empty-Firebase-dashboard debugging:
+        //   * FarmerLocationTracker now writes a Firestore row on EVERY login/
+        //     app-open, even when GPS fix is unavailable (lat=0/lng=0 sentinel,
+        //     source suffix "_nogps"). Any row in Firestore now proves the
+        //     end-to-end pipeline works, isolating GPS-denial vs plumbing bugs.
+        //   * Critical diagnostic log calls switched from Log.i to Log.w so
+        //     they survive R8's -assumenosideeffects Log.i stripping in release.
+        //
+        // v11 — adds Firebase Firestore location tracking (per-farmer geo pings
+        // on login + app-open) and Firebase Analytics user-id attribution.
+        // Also bundles the pre-launch ORR fixes: 7 unsafe `!!` crashes removed,
+        // runBlocking replaced with async init, transient 5xx retry with exp
+        // backoff, HTTPS-only network security config, WebView locked to
+        // hanumanksk.in + google domains.
+        versionName = "12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -84,10 +92,8 @@ android {
             buildConfigField("Boolean", "ENABLE_MOCK_REPO", "false")
         }
         getByName("release") {
-            // TEMPORARILY DISABLED for fast dev-phone installs.
-            // RE-ENABLE BOTH before the next Play Store upload.
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -68,12 +68,10 @@ class HhgApp : Application(), Configuration.Provider {
         appScope.launch {
             val farmerId = runCatching { sessionStore.farmerId.first() }.getOrNull()
             if (!farmerId.isNullOrBlank()) {
-                runCatching {
-                    locationTracker.recordLocation(
-                        farmerId = farmerId,
-                        source = FarmerLocationTracker.Source.AppOpen
-                    )
-                }
+                locationTracker.fireAndForget(
+                    farmerId = farmerId,
+                    source = FarmerLocationTracker.Source.AppOpen
+                )
             }
         }
     }

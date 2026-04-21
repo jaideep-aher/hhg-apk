@@ -1,15 +1,22 @@
 package com.hhg.farmers.service.geo
 
 import android.os.Build
+import android.util.Log
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.hhg.farmers.BuildConfig
 import com.hhg.farmers.service.location.LocationProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val TAG = "GeoTracker"
 
 /**
  * Writes "this farmer was at (lat,lng) at this time" records to Firestore.
@@ -38,6 +45,27 @@ class FarmerLocationTracker @Inject constructor(
     }
 
     /**
+     * Application-scoped — outlives any ViewModel. Callers of [fireAndForget]
+     * can navigate away / have their VM cleared without killing the write.
+     */
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * Fire a geo ping in the background. Returns immediately. Use this from
+     * ViewModels and Activities — the write survives screen transitions.
+     */
+    fun fireAndForget(farmerId: String, source: Source) {
+        // Log.w (not Log.i) so it survives R8's -assumenosideeffects rule
+        // that strips Log.i/d/v from release builds. We need release-build
+        // visibility to confirm Firestore writes are actually firing.
+        Log.w(TAG, "fireAndForget(farmerId=$farmerId, source=${source.label}) queued")
+        appScope.launch {
+            runCatching { recordLocation(farmerId, source) }
+                .onFailure { Log.e(TAG, "recordLocation failed", it) }
+        }
+    }
+
+    /**
      * Best-effort: get the current GPS fix and write it to Firestore + emit a
      * Firebase Analytics event. Safe to call on any coroutine scope.
      *
@@ -45,29 +73,33 @@ class FarmerLocationTracker @Inject constructor(
      * since Firestore queues offline writes).
      */
     suspend fun recordLocation(farmerId: String, source: Source): Boolean {
-        if (farmerId.isBlank()) return false
+        if (farmerId.isBlank()) {
+            Log.w(TAG, "recordLocation aborted — empty farmerId")
+            return false
+        }
+        Log.w(TAG, "recordLocation start: uid=$farmerId source=${source.label} " +
+            "hasLocPerm=${locationProvider.hasPermission()}")
 
         // Attribute all downstream Analytics events to this farmer.
         runCatching { analytics.setUserId(farmerId) }
 
-        val fix = runCatching { locationProvider.getCurrentLocation() }.getOrNull()
-        if (fix == null) {
-            // Still log that the farmer opened the app — useful even without GPS.
-            runCatching {
-                analytics.logEvent("farmer_activity") {
-                    param("source", source.label)
-                    param("has_location", 0L)
-                }
-            }
-            return false
-        }
+        Log.w(TAG, "requesting GPS fix (10s timeout)...")
+        val fix = runCatching { locationProvider.getCurrentLocation() }
+            .onFailure { Log.e(TAG, "LocationProvider threw", it) }
+            .getOrNull()
+        Log.w(TAG, "GPS fix = ${fix?.let { "(${it.latitude}, ${it.longitude}) ±${it.accuracyMeters}m" } ?: "null"}")
 
+        // v12: Always write a Firestore row, even when GPS fix is unavailable.
+        // A row with lat=0/lng=0 still proves Firestore connectivity end-to-end,
+        // which is what we need to debug empty-dashboard complaints. The keyset
+        // stays within the rules' allowlist either way.
+        val hasFix = fix != null
         val summary = mapOf(
-            "lastLat" to fix.latitude,
-            "lastLng" to fix.longitude,
-            "lastAccuracyM" to fix.accuracyMeters.toDouble(),
+            "lastLat" to (fix?.latitude ?: 0.0),
+            "lastLng" to (fix?.longitude ?: 0.0),
+            "lastAccuracyM" to (fix?.accuracyMeters?.toDouble() ?: -1.0),
             "lastSeenAt" to FieldValue.serverTimestamp(),
-            "lastSource" to source.label,
+            "lastSource" to if (hasFix) source.label else "${source.label}_nogps",
             "appVersion" to BuildConfig.VERSION_NAME,
             "appVersionCode" to BuildConfig.VERSION_CODE.toLong(),
             "deviceModel" to Build.MODEL,
@@ -75,18 +107,30 @@ class FarmerLocationTracker @Inject constructor(
             "androidSdk" to Build.VERSION.SDK_INT.toLong()
         )
         val ping = mapOf(
-            "lat" to fix.latitude,
-            "lng" to fix.longitude,
-            "accuracyM" to fix.accuracyMeters.toDouble(),
+            "lat" to (fix?.latitude ?: 0.0),
+            "lng" to (fix?.longitude ?: 0.0),
+            "accuracyM" to (fix?.accuracyMeters?.toDouble() ?: -1.0),
             "at" to FieldValue.serverTimestamp(),
-            "source" to source.label,
+            "source" to if (hasFix) source.label else "${source.label}_nogps",
             "appVersion" to BuildConfig.VERSION_NAME
         )
 
         runCatching {
+            Log.w(TAG, "writing to Firestore farmers/$farmerId (hasFix=$hasFix) ...")
             val doc = firestore.collection("farmers").document(farmerId)
             doc.set(summary, SetOptions.merge()).await()
             doc.collection("pings").add(ping).await()
+            Log.w(TAG, "Firestore write OK for uid=$farmerId")
+        }.onFailure { Log.e(TAG, "Firestore write FAILED for uid=$farmerId", it) }
+
+        if (fix == null) {
+            runCatching {
+                analytics.logEvent("farmer_activity") {
+                    param("source", source.label)
+                    param("has_location", 0L)
+                }
+            }
+            return false
         }
 
         runCatching {
