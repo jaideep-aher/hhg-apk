@@ -3,6 +3,7 @@ package com.hhg.farmers.di
 import com.hhg.farmers.BuildConfig
 import com.hhg.farmers.data.repo.AppConfigApi
 import com.hhg.farmers.data.repo.FarmerApi
+import com.hhg.farmers.service.network.DeviceIdInterceptor
 import com.hhg.farmers.service.weather.WeatherService
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -95,12 +96,23 @@ object NetworkModule {
     }
 
     @Provides @Singleton @Named("main")
-    fun provideMainRetrofit(client: OkHttpClient, moshi: Moshi): Retrofit =
-        Retrofit.Builder()
+    fun provideMainRetrofit(
+        client: OkHttpClient,
+        moshi: Moshi,
+        deviceIdInterceptor: DeviceIdInterceptor
+    ): Retrofit {
+        // Attach the device-id header only to the main (HHG backend) client.
+        // Weather reuses the base client so the identifier never goes to
+        // Open-Meteo.
+        val mainClient = client.newBuilder()
+            .addInterceptor(deviceIdInterceptor)
+            .build()
+        return Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
-            .client(client)
+            .client(mainClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
+    }
 
     /** Open-Meteo base URL — free weather API, no key needed. */
     @Provides @Singleton @Named("weather")

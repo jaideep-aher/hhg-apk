@@ -1,7 +1,27 @@
 const { Router } = require('express');
 const pool = require('../db/pool');
+const loginRateLimit = require('../services/loginRateLimit');
 
 const router = Router();
+
+/**
+ * Build the 429 response body used by both rate-limit branches. Shape is
+ * stable so the Android client can key off `reason` to show the right
+ * localized message without parsing `message`.
+ */
+function rateLimitedResponse(res, info) {
+  const message = info.reason === 'TOO_MANY_FAILED'
+    ? 'Too many failed Aadhaar attempts from this phone today.'
+    : 'Too many different accounts used from this phone today.';
+  res.set('Retry-After', String(info.retryAfterSeconds));
+  return res.status(429).json({
+    error: 'rate_limited',
+    reason: info.reason,
+    limitPerDay: info.limit,
+    retryAfterSeconds: info.retryAfterSeconds,
+    message,
+  });
+}
 
 /**
  * GET /api/farmer/:uid
@@ -89,12 +109,35 @@ router.get('/exists/:uid', async (req, res) => {
   if (!/^\d{5}$/.test(uid)) {
     return res.json({ exists: false });
   }
+
+  // Per-device rate limit. Header is set by the Android app
+  // (DeviceIdInterceptor). Requests without the header skip the check —
+  // the website still hits this endpoint and the limit there is handled
+  // separately / not at all for now.
+  const rawDeviceId = req.get('X-Device-Id');
+  let deviceHash = null;
+  if (rawDeviceId) {
+    const gate = await loginRateLimit.check(rawDeviceId, uid);
+    if (!gate.ok) {
+      return rateLimitedResponse(res, gate);
+    }
+    deviceHash = gate.deviceHash;
+  }
+
   try {
     const result = await pool.query(
       `SELECT EXISTS(SELECT 1 FROM farmers WHERE uid = $1) AS exists`,
       [uid]
     );
-    res.json({ exists: result.rows[0].exists });
+    const exists = result.rows[0].exists;
+
+    // Record the attempt for the next day's counters. Fire-and-forget —
+    // record() swallows its own errors so we don't affect the response.
+    if (deviceHash) {
+      loginRateLimit.record({ deviceHash, uid, success: exists }).catch(() => {});
+    }
+
+    res.json({ exists });
   } catch (err) {
     console.error('GET /api/farmer/exists/:uid error:', err.message);
     res.status(500).json({ error: 'Internal server error' });

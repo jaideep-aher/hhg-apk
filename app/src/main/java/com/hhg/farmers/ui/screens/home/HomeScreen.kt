@@ -190,6 +190,8 @@ private fun SearchCard(
                     SearchError.NotFound -> stringResource(R.string.home_not_found)
                     SearchError.Offline -> stringResource(R.string.error_no_internet)
                     SearchError.Generic -> stringResource(R.string.home_error_generic)
+                    SearchError.RateLimitedAccounts -> stringResource(R.string.home_rate_limited_accounts)
+                    SearchError.RateLimitedFailed -> stringResource(R.string.home_rate_limited_failed)
                 }
                 Text(
                     text = msg,

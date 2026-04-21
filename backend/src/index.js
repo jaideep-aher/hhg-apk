@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
 const pool    = require('./db/pool');
+const { ensureSchema } = require('./db/initSchema');
 
 const farmerRouter    = require('./routes/farmer');
 const ratesRouter     = require('./routes/rates');
@@ -14,7 +15,11 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-app.use(cors());
+app.use(cors({
+  // Allow the app (and any web origin) to read Retry-After so the client
+  // can render a sensible "try again in X" message on 429 responses.
+  exposedHeaders: ['Retry-After'],
+}));
 app.use(express.json({ limit: '1mb' }));
 
 // ── Health check — Railway uses this to confirm the service is alive ──────────
@@ -53,6 +58,13 @@ app.use('/api/localvyapar', localvyaparRouter);
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 
 // ── Start ─────────────────────────────────────────────────────────────────────
+// Kick off schema bootstrap (idempotent). We do NOT await it so a slow
+// connection to RDS can't hold up the Railway health check — worst case,
+// the first few rate-limit lookups skip silently until the table exists.
+ensureSchema().catch((err) => {
+  console.error('[startup] ensureSchema rejected:', err && err.message);
+});
+
 app.listen(PORT, () => {
   console.log(`HHG Farmers API running on port ${PORT}`);
   console.log(`Health: http://localhost:${PORT}/health`);

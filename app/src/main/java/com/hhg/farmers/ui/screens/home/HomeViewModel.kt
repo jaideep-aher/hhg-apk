@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hhg.farmers.data.auth.AuthRepository
+import com.hhg.farmers.data.auth.LoginRateLimitedException
 import com.hhg.farmers.data.model.Notice
 import com.hhg.farmers.data.repo.FarmerRepository
 import com.hhg.farmers.service.geo.FarmerLocationTracker
@@ -92,6 +93,15 @@ class HomeViewModel @Inject constructor(
                     )
                     val err = when {
                         t is IllegalArgumentException -> SearchError.Invalid
+                        // Rate limit check has to come before the generic
+                        // message-based "not found" sniff — a 429 doesn't
+                        // contain the word "not found" but we still want to
+                        // short-circuit network-status fallback.
+                        t is LoginRateLimitedException -> when (t.reason) {
+                            LoginRateLimitedException.Reason.TOO_MANY_FAILED ->
+                                SearchError.RateLimitedFailed
+                            else -> SearchError.RateLimitedAccounts
+                        }
                         // Check "not found" marker on our own repo exception FIRST,
                         // before network classification, since a real 404 comes back
                         // as an HttpException but our repo may wrap it.
@@ -126,7 +136,16 @@ data class HomeUiState(
     val noticesLoading: Boolean = false
 )
 
-enum class SearchError { Invalid, NotFound, Generic, Offline }
+enum class SearchError {
+    Invalid,
+    NotFound,
+    Generic,
+    Offline,
+    /** Too many different farmer accounts used from this phone today. */
+    RateLimitedAccounts,
+    /** Too many failed UID attempts — brute-force guard triggered. */
+    RateLimitedFailed
+}
 
 sealed interface HomeEvent {
     data class NavigateToFarmer(val uid: String) : HomeEvent
