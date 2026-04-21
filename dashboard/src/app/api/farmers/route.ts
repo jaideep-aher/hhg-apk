@@ -1,22 +1,8 @@
 import { NextResponse } from 'next/server'
-import { initializeApp, getApps, cert } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
-
-function db() {
-  if (getApps().length === 0) {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    })
-  }
-  return getFirestore()
-}
+import { firestore, isFirebaseConfigured } from '@/lib/firebase'
 
 export async function GET() {
-  if (!process.env.FIREBASE_PROJECT_ID) {
+  if (!isFirebaseConfigured()) {
     return NextResponse.json(
       { error: 'Firebase not configured. Copy .env.local.example to .env.local and fill in credentials.' },
       { status: 503 }
@@ -24,15 +10,15 @@ export async function GET() {
   }
 
   try {
-    const firestore = db()
-    const snap = await firestore.collection('farmers').get()
+    const db = firestore()
+    const snap = await db.collection('farmers').get()
 
     const farmers = await Promise.all(
       snap.docs.map(async (doc) => {
         const data = doc.data()
 
         // Fetch last 20 pings for this farmer
-        const pingsSnap = await firestore
+        const pingsSnap = await db
           .collection('farmers')
           .doc(doc.id)
           .collection('pings')
@@ -71,6 +57,10 @@ export async function GET() {
     return NextResponse.json({ farmers })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    // Surface a hint when the usual private-key paste mistake bubbles up.
+    const hint = /DECODER routines|unsupported|PEM/i.test(message)
+      ? ' — FIREBASE_PRIVATE_KEY looks malformed. Open /api/_diag for diagnostics and re-paste per the deploy docs.'
+      : ''
+    return NextResponse.json({ error: message + hint }, { status: 500 })
   }
 }
