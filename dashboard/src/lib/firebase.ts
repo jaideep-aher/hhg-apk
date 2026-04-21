@@ -41,7 +41,8 @@ function resolvePrivateKey(): string | undefined {
 
   let k = raw
   // Strip a single layer of surrounding quotes if present.
-  const quoted = /^["'].*["']$/s.test(k.trim())
+  // Using [\s\S] instead of . + /s flag so the regex compiles on ES2017 TS targets.
+  const quoted = /^["'][\s\S]*["']$/.test(k.trim())
   if (quoted) k = k.trim().slice(1, -1)
 
   // Convert literal \n → real newlines (idempotent when newlines are already real).
