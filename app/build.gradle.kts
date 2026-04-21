@@ -28,9 +28,9 @@ android {
         applicationId = "com.tec.agrofixpartner"
         minSdk = 24           // Android 7.0 — covers ~97% of devices; safe for 2018+ hardware
         targetSdk = 35
-        versionCode = 8
-        // Shown in Settings, launcher info, and telemetry — matches ready-to-use/version-8.apk
-        versionName = "Version 8"
+        versionCode = 10
+        // Shown in Settings, launcher info, and telemetry — matches ready-to-use/version-10.apk
+        versionName = "Version 10"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }

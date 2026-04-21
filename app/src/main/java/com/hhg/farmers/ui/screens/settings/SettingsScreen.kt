@@ -15,11 +15,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,20 +50,30 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hhg.farmers.R
 import com.hhg.farmers.data.session.SessionStore
 import com.hhg.farmers.ui.components.AppTopBar
+import com.hhg.farmers.ui.navigation.Routes
 import com.hhg.farmers.ui.theme.HhgOrange500
 import com.hhg.farmers.ui.theme.HhgTheme
 
 /**
- * Screen 8 — Settings.
+ * Settings screen — from v10 onward this is the hub for everything that
+ * isn't one of the four bottom-nav roots. The drawer used to host these
+ * entries; consolidating them here means the top bar can stay icon-free
+ * and there's exactly one way to reach every destination.
  *
  * Sections:
- *  - Account (logged-in farmer ID, logout)
- *  - Preferences (language — coming soon, notifications)
- *  - About (app version, contact)
+ *  - Account       → farmer ID, logout
+ *  - Pages         → seeds · local vyapari · about · contact (reaches the
+ *                     corresponding webview detail screens via [onNavigate])
+ *  - Preferences   → language, notifications
+ *  - About         → app version, office contact info
+ *
+ * Logout wipes BOTH native session and the WebView's cookies/localStorage —
+ * see [SettingsViewModel.logout] for the rationale.
  */
 @Composable
 fun SettingsScreen(
     onLogout: () -> Unit,
+    onNavigate: (route: String) -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -152,6 +165,37 @@ fun SettingsScreen(
                     labelColor = Color(0xFFDC2626),
                     iconTint = Color(0xFFDC2626),
                     onClick = { showLogoutDialog = true }
+                )
+            }
+
+            // ── Pages section (was the drawer in v9 and earlier) ──────────────
+            // Seeds only appears when there's a signed-in farmer — same guard
+            // the drawer used. Everything else is always reachable.
+            SettingsSection(title = stringResource(R.string.settings_section_pages)) {
+                if (state.farmerId != null) {
+                    SettingsActionRow(
+                        icon = Icons.Filled.Grass,
+                        label = stringResource(R.string.menu_seeds),
+                        onClick = { onNavigate(Routes.SEEDS_LIST) }
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                }
+                SettingsActionRow(
+                    icon = Icons.Filled.Map,
+                    label = stringResource(R.string.nav_local_vyapari),
+                    onClick = { onNavigate(Routes.LOCAL_VYAPARI) }
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                SettingsActionRow(
+                    icon = Icons.Filled.Info,
+                    label = stringResource(R.string.menu_about),
+                    onClick = { onNavigate(Routes.ABOUT) }
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                SettingsActionRow(
+                    icon = Icons.Filled.Phone,
+                    label = stringResource(R.string.menu_contact),
+                    onClick = { onNavigate(Routes.CONTACT) }
                 )
             }
 

@@ -1,5 +1,7 @@
 package com.hhg.farmers.ui.screens.settings
 
+import android.webkit.CookieManager
+import android.webkit.WebStorage
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
@@ -58,10 +60,35 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Signs the farmer out across BOTH halves of the app. Order matters —
+     * if we cleared the native [SessionStore] first, the next webview load
+     * would still find `localStorage.farmerId` from the previous session
+     * and our [farmerIdBridgeScript] would push it right back into native,
+     * effectively re-logging-the-user-in. That was the Version 9 bug.
+     *
+     * Steps:
+     *   1. Wipe all WebView cookies (auth, session, analytics).
+     *   2. Wipe all WebView localStorage / IndexedDB / WebSQL — this is
+     *      where the site stashes `farmerId` and `farmerData2`.
+     *   3. Clear the native [SessionStore] (farmerId + tokens).
+     *   4. Invoke [onDone] so the nav host can bounce to HOME.
+     *
+     * WebStorage.deleteAllData() and CookieManager.removeAllCookies()
+     * are safe to call even if no WebView is currently alive — they
+     * operate on the app-global Chromium storage.
+     */
     fun logout(onDone: () -> Unit) {
         viewModelScope.launch {
             _state.update { it.copy(isLoggingOut = true) }
             telemetry.track("logout")
+            withContext(Dispatchers.Main.immediate) {
+                with(CookieManager.getInstance()) {
+                    removeAllCookies(null)
+                    flush()
+                }
+                WebStorage.getInstance().deleteAllData()
+            }
             session.clear()
             onDone()
         }

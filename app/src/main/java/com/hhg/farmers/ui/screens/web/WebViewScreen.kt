@@ -81,11 +81,22 @@ import kotlinx.coroutines.launch
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebViewScreen(
-    title: String,
     url: String,
     sessionStore: SessionStore,
-    onBack: () -> Unit,
-    onMenu: (() -> Unit)? = null,
+    /**
+     * Called by system back / top-bar back when the WebView has no more
+     * history to pop. Typical wiring:
+     *  - Root tabs (Home / Market / AI Trend): pass `{}` — system back stays
+     *    in the app on the current tab after webview history is consumed.
+     *  - Detail routes reached via Settings: pass `{ navController.popBackStack() }`
+     *    to return to the Settings hub.
+     */
+    onBack: () -> Unit = {},
+    /**
+     * When true, the compact native top bar renders a leading back arrow.
+     * Root webview screens pass `false` (nothing on the left, wordmark centered).
+     */
+    showBackButton: Boolean = false,
     /**
      * Notified whenever the web page commits to a `/farmers/{aadhaar}` URL
      * (either because the user just searched, or the site auto-redirected
@@ -123,22 +134,17 @@ fun WebViewScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        // The top bar shows EITHER the hamburger OR the back arrow — not both.
-        // Root screens (HOME / MARKET_HUB / AI_TREND) pass [onMenu] so we render
-        // the drawer icon. Detail screens (SEEDS / LOCAL_VYAPARI / ABOUT / remote
-        // pages) pass no [onMenu], so we render the back arrow instead.
-        // In-WebView history is still honored via the system BackHandler below,
-        // regardless of which icon is visible here.
-        val showMenu = onMenu != null
+        // Compact wordmark-only bar. Only detail routes (those reached via
+        // Settings) pass [showBackButton]=true; root tabs leave the leading
+        // slot empty. In-WebView history is always honored by [BackHandler]
+        // below regardless of whether the visual arrow is present.
         AppTopBar(
-            title = title,
-            onBack = if (showMenu) null else {
+            onBack = if (showBackButton) {
                 {
                     val wv = webViewRef[0]
                     if (wv != null && wv.canGoBack()) wv.goBack() else onBack()
                 }
-            },
-            onMenuClick = onMenu
+            } else null
         )
 
         if (isLoading && progress in 1..99) {
@@ -161,6 +167,22 @@ fun WebViewScreen(
                             )
                             overScrollMode = WebView.OVER_SCROLL_NEVER
 
+                            // ── Scroll smoothness ────────────────────────
+                            // Force a hardware-accelerated layer: WebView
+                            // still inherits hw-accel from the manifest but
+                            // raster quality during fling scrolls is better
+                            // when the view has its own dedicated layer.
+                            setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+                            // Don't redraw the view every frame — use the
+                            // compose rendering pipeline's own cache.
+                            isScrollbarFadingEnabled = true
+                            // Pre-render a screen's worth of content above
+                            // and below the viewport so fast flings stay
+                            // on the compositor thread (no UI-thread
+                            // layout work during scroll).
+                            @Suppress("DEPRECATION")
+                            drawingCacheQuality = android.view.View.DRAWING_CACHE_QUALITY_HIGH
+
                             settings.apply {
                                 javaScriptEnabled = true
                                 domStorageEnabled = true
@@ -172,13 +194,18 @@ fun WebViewScreen(
                                 loadsImagesAutomatically = true
                                 useWideViewPort = true
                                 loadWithOverviewMode = true
+                                // Keeps a tile raster outside the viewport
+                                // ready for paint — this is the single
+                                // biggest win for scroll jank in WebView.
+                                offscreenPreRaster = true
                                 // Allow geolocation (the site asks the browser
                                 // for the farmer's GPS for weather).
                                 setGeolocationEnabled(true)
                                 // A recognizable UA with a +hhg-android tag so
                                 // the website can opt into app-only tweaks
-                                // (e.g. hide the "Download our app" banner).
-                                userAgentString = userAgentString + " hhg-android/8"
+                                // (e.g. hide the web header when insideApp,
+                                // skip the "Download our app" banner, etc.).
+                                userAgentString = userAgentString + " hhg-android/10"
                                 // Tablet / large-display safety: don't lie
                                 // about the viewport width.
                                 mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
