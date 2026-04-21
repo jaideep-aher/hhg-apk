@@ -123,11 +123,20 @@ fun WebViewScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
+        // The top bar shows EITHER the hamburger OR the back arrow — not both.
+        // Root screens (HOME / MARKET_HUB / AI_TREND) pass [onMenu] so we render
+        // the drawer icon. Detail screens (SEEDS / LOCAL_VYAPARI / ABOUT / remote
+        // pages) pass no [onMenu], so we render the back arrow instead.
+        // In-WebView history is still honored via the system BackHandler below,
+        // regardless of which icon is visible here.
+        val showMenu = onMenu != null
         AppTopBar(
             title = title,
-            onBack = {
-                val wv = webViewRef[0]
-                if (wv != null && wv.canGoBack()) wv.goBack() else onBack()
+            onBack = if (showMenu) null else {
+                {
+                    val wv = webViewRef[0]
+                    if (wv != null && wv.canGoBack()) wv.goBack() else onBack()
+                }
             },
             onMenuClick = onMenu
         )
@@ -169,7 +178,7 @@ fun WebViewScreen(
                                 // A recognizable UA with a +hhg-android tag so
                                 // the website can opt into app-only tweaks
                                 // (e.g. hide the "Download our app" banner).
-                                userAgentString = userAgentString + " hhg-android/7"
+                                userAgentString = userAgentString + " hhg-android/8"
                                 // Tablet / large-display safety: don't lie
                                 // about the viewport width.
                                 mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
