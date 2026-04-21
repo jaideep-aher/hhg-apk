@@ -110,8 +110,13 @@ fun AppNavHost(
                         Routes.ONBOARDING
                     )
                     if (current !in gateScreens) {
+                        // Clear the ENTIRE back stack. This is deliberate:
+                        // the location gate must behave like Tinder's — the user
+                        // cannot press back to return to the previously-visible
+                        // HOME/MARKET/etc. screen while Location is off.
                         navController.navigate(Routes.LOCATION_SERVICES) {
-                            popUpTo(Routes.HOME) { inclusive = false }
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     }
                 }

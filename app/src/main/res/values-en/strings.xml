@@ -92,16 +92,18 @@
     <string name="settings_logout_confirm_body">You will need to enter your Aadhaar number again to access your patti.</string>
     <string name="settings_cancel">Cancel</string>
 
-    <!-- Onboarding -->
-    <string name="onboard_page1_title">Your records, one tap away</string>
-    <string name="onboard_page1_body">View your patti entries, payment history, and totals — all in one place. Share as PDF anytime.</string>
-    <string name="onboard_page2_title">Live market rates</string>
-    <string name="onboard_page2_body">Today\'s Hundekari rates plus APMC data from Lasalgaon, Pune, Mumbai, and Nashik — updated daily.</string>
-    <string name="onboard_page3_title">AI market trends</string>
-    <string name="onboard_page3_body">AI-powered weekly analysis of onion, tomato, garlic, and potato rates. Plan your sales smarter.</string>
-    <string name="onboard_get_started">Get Started</string>
-    <string name="onboard_skip">Skip</string>
-    <string name="onboard_next">Next</string>
+    <!-- Onboarding — intentionally Marathi in every locale so the first-launch
+         welcome tour always speaks the farmer's language, even if the device
+         locale is English when the app is installed. -->
+    <string name="onboard_page1_title">पट्ट्या एका क्लिकवर</string>
+    <string name="onboard_page1_body">आपल्या सर्व पट्टी नोंदी, देयके आणि एकूण रक्कम एकाच ठिकाणी पाहा. PDF म्हणून शेअर करा.</string>
+    <string name="onboard_page2_title">ताजे मार्केट भाव</string>
+    <string name="onboard_page2_body">हुंडेकरी भावांसह लासलगाव, पुणे, मुंबई आणि नाशिक चे APMC भाव — रोज अपडेट.</string>
+    <string name="onboard_page3_title">AI मार्केट ट्रेंड</string>
+    <string name="onboard_page3_body">कांदा, टोमॅटो, लसूण आणि बटाटा यांचे AI-चालित साप्ताहिक विश्लेषण. हुशारीने विक्री करा.</string>
+    <string name="onboard_get_started">चालू करा</string>
+    <string name="onboard_skip">वगळा</string>
+    <string name="onboard_next">पुढे जा</string>
 
     <!-- Weather card -->
     <string name="weather_subtitle_ghargaon">Ghargaon (Sangamner taluka) · 422620</string>
@@ -147,6 +149,7 @@
     <string name="location_services_bullet">Turn on GPS / Location Services in your device settings.</string>
     <string name="location_services_open_settings">Open Location Settings</string>
     <string name="location_services_note">Once you turn on Location Services, the app will continue automatically.</string>
+    <string name="location_services_back_exit">Press back again to close the app</string>
 
     <!-- Drawer / menu -->
     <string name="menu_open">Open menu</string>

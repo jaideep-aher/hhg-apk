@@ -101,9 +101,9 @@
     <string name="onboard_page2_body">हुंडेकरी भावांसह लासलगाव, पुणे, मुंबई आणि नाशिक चे APMC भाव — रोज अपडेट.</string>
     <string name="onboard_page3_title">AI मार्केट ट्रेंड</string>
     <string name="onboard_page3_body">कांदा, टोमॅटो, लसूण आणि बटाटा यांचे AI-चालित साप्ताहिक विश्लेषण. हुशारीने विक्री करा.</string>
-    <string name="onboard_get_started">सुरुवात करा</string>
+    <string name="onboard_get_started">चालू करा</string>
     <string name="onboard_skip">वगळा</string>
-    <string name="onboard_next">पुढे</string>
+    <string name="onboard_next">पुढे जा</string>
 
     <!-- Weather card -->
     <string name="weather_subtitle_ghargaon">घारगाव (संगमनेर तालुका) · ४२२६२०</string>
@@ -128,6 +128,7 @@
 
     <!-- Permissions / location -->
     <string name="location_permission_rationale">स्थान माहिती मिळाल्याने योग्य बाजारभाव दाखवता येतील.</string>
+    <string name="location_services_back_exit">अॅप बंद करण्यासाठी पुन्हा मागे दाबा</string>
 
     <!-- Startup permission sheet -->
     <string name="permission_setup_title">अॅप परवानग्या</string>

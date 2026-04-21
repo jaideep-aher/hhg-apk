@@ -1,7 +1,10 @@
 package com.hhg.farmers.ui.screens.permissions
 
+import android.app.Activity
 import android.content.Intent
 import android.provider.Settings
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +31,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,6 +60,7 @@ import com.hhg.farmers.ui.theme.HhgOrange500
 @Composable
 fun LocationServicesScreen(onEnabled: () -> Unit) {
     val context = LocalContext.current
+    val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -67,6 +75,22 @@ fun LocationServicesScreen(onEnabled: () -> Unit) {
 
     LaunchedEffect(Unit) {
         if (isLocationServicesEnabled(context)) onEnabled()
+    }
+
+    // Tinder-style back-press gate: back must NOT navigate to any other screen
+    // (e.g. the previously-visible webview). First back shows a toast; a second
+    // back within 2s closes the app. The user can only escape this gate by
+    // turning on Location Services.
+    val backExitMessage = stringResource(R.string.location_services_back_exit)
+    var lastBackPressMs by remember { mutableLongStateOf(0L) }
+    BackHandler(enabled = true) {
+        val now = System.currentTimeMillis()
+        if (now - lastBackPressMs < 2_000L) {
+            activity?.finishAndRemoveTask()
+        } else {
+            lastBackPressMs = now
+            Toast.makeText(context, backExitMessage, Toast.LENGTH_SHORT).show()
+        }
     }
 
     Scaffold(
