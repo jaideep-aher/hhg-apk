@@ -49,9 +49,9 @@ router.get('/', (req, res) => {
     // in Railway if you deliberately want to override (e.g. package migration
     // where you want old users pointed at a new listing).
     playStoreUrl:        process.env.PLAY_STORE_URL || '',
-    forceUpdateTitle:    process.env.FORCE_UPDATE_TITLE   || 'अॅप अपडेट करा',
+    forceUpdateTitle:    process.env.FORCE_UPDATE_TITLE   || 'ॲप अपडेट करा',
     forceUpdateMessage:  process.env.FORCE_UPDATE_MESSAGE ||
-                         'पुढे जाण्यासाठी कृपया अॅपचे नवीन व्हर्जन इन्स्टॉल करा. ' +
+                         'पुढे जाण्यासाठी कृपया ॲपचे नवीन व्हर्जन इन्स्टॉल करा. ' +
                          'जुने व्हर्जन आता सपोर्टेड नाही.',
 
     // Base URL of the Next.js site whose pages the Android shell hosts in
