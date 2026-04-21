@@ -30,9 +30,19 @@ class RetrofitFarmerRepository @Inject constructor(
 
     /* ── Existence check ────────────────────────────────────────────────────── */
 
+    /**
+     * Distinguishes "not found" from "network down":
+     *   - HTTP 404      → false (farmer genuinely doesn't exist)
+     *   - IO/timeout/5xx → rethrow so the caller can show a retry-able
+     *                      "check your connection" state instead of the
+     *                      misleading "Farmer not found" message.
+     */
     override suspend fun farmerExists(uid: String): Boolean = runCatching {
         api.farmerExists(uid).exists
-    }.getOrDefault(false)
+    }.getOrElse { err ->
+        if (err is HttpException && err.code() == 404) false
+        else throw err
+    }
 
     /* ── Full farmer page (all patti entries) ───────────────────────────────── */
 

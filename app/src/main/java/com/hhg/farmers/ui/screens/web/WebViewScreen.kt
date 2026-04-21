@@ -206,9 +206,16 @@ fun WebViewScreen(
                                 // (e.g. hide the web header when insideApp,
                                 // skip the "Download our app" banner, etc.).
                                 userAgentString = userAgentString + " hhg-android/10"
-                                // Tablet / large-display safety: don't lie
-                                // about the viewport width.
-                                mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                                // HARDENING (v10): refuse to load any http://
+                                // subresource on an https:// page. We only
+                                // talk to hanumanksk.in — there is no reason
+                                // a mixed-content asset should ever appear.
+                                mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                                // HARDENING: disable file:// + content://
+                                // access. A malicious redirect could otherwise
+                                // load local files from the device.
+                                allowFileAccess = false
+                                allowContentAccess = false
                             }
 
                             // Cookies persist across sessions so if the site
@@ -458,8 +465,20 @@ private class HhgWebViewClient(
         val scheme = uri.scheme?.lowercase() ?: return false
 
         return when (scheme) {
-            // Web traffic: let the WebView handle it.
-            "http", "https", "about", "file" -> false
+            // Web traffic to our own host or common CDNs stays in the WebView.
+            // Any other http(s) URL (ad network, phishing redirect, etc.) is
+            // punted to the system browser instead — so even if the site is
+            // ever compromised, farmers don't silently navigate to an
+            // arbitrary page inside the app shell.
+            "http", "https", "about" -> {
+                val host = uri.host?.lowercase() ?: return false
+                if (isAllowedWebHost(host)) {
+                    false
+                } else {
+                    onExternalIntent(uri)
+                    true
+                }
+            }
 
             // Everything else (tel:, mailto:, whatsapp://, upi://, intent://,
             // market:// etc.) gets handed to the OS. Prevents "net::ERR_UNKNOWN_
@@ -469,6 +488,21 @@ private class HhgWebViewClient(
                 true
             }
         }
+    }
+
+    /**
+     * Domain allowlist for in-WebView navigation. Anything not on this list
+     * (and not a custom scheme) gets punted to the system browser. Add new
+     * hosts cautiously — every entry here is an implicit trust boundary.
+     */
+    private fun isAllowedWebHost(host: String): Boolean {
+        return host == "hanumanksk.in" ||
+            host.endsWith(".hanumanksk.in") ||
+            // Google identity / analytics pages sometimes redirect through
+            // these during OAuth; keep for future Google Sign-In.
+            host.endsWith(".google.com") ||
+            host.endsWith(".googleapis.com") ||
+            host.endsWith(".gstatic.com")
     }
 
     override fun onReceivedError(

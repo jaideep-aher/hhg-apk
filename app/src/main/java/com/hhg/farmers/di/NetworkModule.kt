@@ -9,9 +9,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import java.io.IOException
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
@@ -31,8 +34,18 @@ object NetworkModule {
     @Provides @Singleton
     fun provideOkHttp(): OkHttpClient =
         OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            // Rural 2G/3G reality: EDGE handshakes alone can take 15-20s, and
+            // cold Railway dynos return 502 for a few seconds. Generous
+            // timeouts + bounded callTimeout prevent both spurious failures
+            // and runaway in-flight requests hanging forever.
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .callTimeout(90, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            // Transient 5xx retry (Railway cold-start 502s, flaky cellular).
+            // Only retries safe GET-like failures; POSTs pass through.
+            .addInterceptor(TransientRetryInterceptor(maxRetries = 2))
             .apply {
                 if (BuildConfig.DEBUG) {
                     addInterceptor(
@@ -43,6 +56,43 @@ object NetworkModule {
                 }
             }
             .build()
+
+    /**
+     * Retries transient 502/503/504 and IOException on GET requests. Keeps
+     * the first response's body closed before re-dispatching so we don't
+     * leak connections. Exponential backoff with jitter — 400ms, 1200ms.
+     */
+    private class TransientRetryInterceptor(private val maxRetries: Int) : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val req = chain.request()
+            if (req.method != "GET") return chain.proceed(req)
+
+            var lastError: IOException? = null
+            var attempt = 0
+            while (attempt <= maxRetries) {
+                try {
+                    val resp = chain.proceed(req)
+                    val code = resp.code
+                    if (code in 502..504 && attempt < maxRetries) {
+                        resp.close()
+                        Thread.sleep(backoffMs(attempt))
+                        attempt++
+                        continue
+                    }
+                    return resp
+                } catch (e: IOException) {
+                    lastError = e
+                    if (attempt >= maxRetries) throw e
+                    Thread.sleep(backoffMs(attempt))
+                    attempt++
+                }
+            }
+            throw lastError ?: IOException("retry budget exhausted")
+        }
+
+        private fun backoffMs(attempt: Int): Long =
+            (400L * (1 shl attempt)) + (0L..200L).random()
+    }
 
     @Provides @Singleton @Named("main")
     fun provideMainRetrofit(client: OkHttpClient, moshi: Moshi): Retrofit =

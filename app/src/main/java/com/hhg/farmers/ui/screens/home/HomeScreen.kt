@@ -135,9 +135,10 @@ fun HomeScreen(
                 onAiTrendClick = onAiTrendClick
             )
 
-            if (!weatherState.isLoading && weatherState.weather != null) {
+            val weather = weatherState.weather
+            if (!weatherState.isLoading && weather != null) {
                 WeatherCard(
-                    weather = weatherState.weather!!,
+                    weather = weather,
                     usedDeviceLocation = weatherState.usedDeviceLocation
                 )
             }

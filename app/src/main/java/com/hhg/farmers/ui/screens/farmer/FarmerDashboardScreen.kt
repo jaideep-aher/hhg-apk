@@ -107,15 +107,21 @@ fun FarmerDashboardScreen(
                 )
             state.page == null ->
                 EmptyState(message = stringResource(R.string.farmer_no_data), modifier = modifier)
-            else -> DashboardContent(
-                farmer = state.page!!.farmer,
-                entries = state.page!!.entries,
-                totals = state.totals,
-                onOpenMarketRates = onOpenMarketRates,
-                onOpenAiTrend = onOpenAiTrend,
-                onShare = viewModel::sharePatti,
-                modifier = modifier
-            )
+            else -> {
+                // Snapshot `state.page` to a local so the `!!` race (StateFlow
+                // updates between the `when` check and the deref) can't NPE
+                // on a background-to-foreground process restore.
+                val page = state.page ?: return@Scaffold
+                DashboardContent(
+                    farmer = page.farmer,
+                    entries = page.entries,
+                    totals = state.totals,
+                    onOpenMarketRates = onOpenMarketRates,
+                    onOpenAiTrend = onOpenAiTrend,
+                    onShare = viewModel::sharePatti,
+                    modifier = modifier
+                )
+            }
         }
     }
 }

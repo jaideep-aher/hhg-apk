@@ -118,6 +118,7 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx" }
 firebase-config = { module = "com.google.firebase:firebase-config-ktx" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore-ktx" }
 
 # PostHog analytics (parity with web)
 posthog-android = { module = "com.posthog:posthog-android", version.ref = "posthog" }

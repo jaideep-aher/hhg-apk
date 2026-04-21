@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Enforce HTTPS across the entire app. No cleartext allowed — a compromised
+  DNS or a carelessly-added http:// URL would fail fast instead of silently
+  sending farmer data over the wire.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

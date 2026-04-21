@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hhg.farmers.data.auth.AuthRepository
 import com.hhg.farmers.data.model.Notice
 import com.hhg.farmers.data.repo.FarmerRepository
+import com.hhg.farmers.service.geo.FarmerLocationTracker
 import com.hhg.farmers.service.network.NetworkErrors
 import com.hhg.farmers.service.telemetry.TelemetryManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,6 +37,7 @@ class HomeViewModel @Inject constructor(
     private val auth: AuthRepository,
     private val farmerRepo: FarmerRepository,
     private val telemetry: TelemetryManager,
+    private val locationTracker: FarmerLocationTracker,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -70,6 +72,17 @@ class HomeViewModel @Inject constructor(
             result
                 .onSuccess {
                     telemetry.track("home_search_success")
+                    // Fire-and-forget geo ping. Uses viewModelScope so it
+                    // survives the screen transition; if GPS or Firestore
+                    // hangs, navigation still happens immediately.
+                    viewModelScope.launch {
+                        runCatching {
+                            locationTracker.recordLocation(
+                                farmerId = uid,
+                                source = FarmerLocationTracker.Source.Login
+                            )
+                        }
+                    }
                     _events.value = HomeEvent.NavigateToFarmer(uid)
                 }
                 .onFailure { t ->

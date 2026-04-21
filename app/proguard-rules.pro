@@ -20,6 +20,19 @@
 -keep class com.google.firebase.** { *; }
 -dontwarn com.google.firebase.**
 
+# Strip verbose logcat calls from release builds. Release APKs must never leak
+# farmer IDs, push payloads, or backend URLs to logcat — anyone with USB
+# debugging can `adb logcat` otherwise. We keep warn/error for Crashlytics.
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+}
+
+# Retrofit — added rules beyond consumer jars for belt-and-braces safety.
+-keep,allowobfuscation,allowshrinking interface retrofit2.Call
+-keep,allowobfuscation,allowshrinking class retrofit2.Response
+
 # WebView @JavascriptInterface methods are only ever called by name from JS.
 # R8 can't see those call-sites, so without this rule release builds would
 # rename `onFarmerIdChanged` and the web→native farmerId bridge would silently

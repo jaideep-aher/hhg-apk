@@ -1,5 +1,18 @@
 import java.util.Properties
 
+// Load signing config from keystore.properties (gitignored). If the file is
+// missing (CI, fresh clone, GitHub sideload), release builds fall back to the
+// debug keystore so `assembleRelease` still works for local testing.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) {
+        keystorePropsFile.inputStream().use { load(it) }
+    }
+}
+val hasUploadKey = keystoreProps.getProperty("storeFile") != null &&
+    keystoreProps.getProperty("storePassword") != null &&
+    !keystoreProps.getProperty("storePassword", "").startsWith("REPLACE_ME")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -24,13 +37,36 @@ android {
     namespace = "com.hhg.farmers"
     compileSdk = 35
 
+    // Upload key signing config — only registered if keystore.properties is
+    // filled in. Keeps the upload keystore out of git while still letting
+    // `./gradlew bundleRelease` produce a Play-uploadable AAB locally.
+    signingConfigs {
+        if (hasUploadKey) {
+            create("upload") {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "com.tec.agrofixpartner"
         minSdk = 24           // Android 7.0 — covers ~97% of devices; safe for 2018+ hardware
         targetSdk = 35
-        versionCode = 10
-        // Shown in Settings, launcher info, and telemetry — matches ready-to-use/version-10.apk
-        versionName = "Version 10"
+        versionCode = 11
+        // Semver — shown in Settings, launcher info, telemetry, support tickets.
+        // Bump patch (10.0.1) for fixes, minor (10.1.0) for features, major for
+        // breaking UX changes.
+        //
+        // 10.1.0 — adds Firebase Firestore location tracking (per-farmer geo
+        // pings on login + app-open) and Firebase Analytics user-id
+        // attribution. Also bundles the pre-launch ORR fixes: 7 unsafe `!!`
+        // crashes removed, runBlocking replaced with async init, transient
+        // 5xx retry with exp backoff, HTTPS-only network security config,
+        // WebView locked to hanumanksk.in + google domains.
+        versionName = "10.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -48,17 +84,24 @@ android {
             buildConfigField("Boolean", "ENABLE_MOCK_REPO", "false")
         }
         getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // TEMPORARILY DISABLED for fast dev-phone installs.
+            // RE-ENABLE BOTH before the next Play Store upload.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
             buildConfigField("String", "API_BASE_URL", "\"https://api.hanumanksk.in/api/\"")
             buildConfigField("Boolean", "ENABLE_MOCK_REPO", "false")  // release always uses real backend
-            // Sign with the default debug keystore so `assembleRelease` produces an installable APK
-            // without repo secrets (GitHub/sideload). Use a proper upload key for Play Console.
-            signingConfig = signingConfigs.getByName("debug")
+            // Use the real upload keystore if `keystore.properties` is present (for Play Console
+            // uploads). Otherwise fall back to the debug keystore so CI / fresh clones can still
+            // produce a sideloadable APK — which will NOT be accepted by Play.
+            signingConfig = if (hasUploadKey) {
+                signingConfigs.getByName("upload")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
@@ -147,6 +190,7 @@ dependencies {
     implementation(libs.firebase.config)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.firestore)
 
     // Analytics
     implementation(libs.posthog.android)

@@ -57,7 +57,7 @@ fun HundekariRatesScreen(
             state.isLoading && state.rates.isEmpty() -> LoadingState(modifier)
             state.errorMessage != null && state.rates.isEmpty() ->
                 ErrorState(
-                    message = state.errorMessage!!,
+                    message = state.errorMessage ?: stringResource(R.string.error_generic),
                     onRetry = { viewModel.refresh() },
                     modifier = modifier
                 )

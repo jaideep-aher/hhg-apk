@@ -77,12 +77,11 @@ fun AppNavHost(
         }
     }
 
-    if (navStart == null) {
+    val start = navStart
+    if (start == null) {
         LoadingState(modifier = modifier.fillMaxSize())
         return
     }
-
-    val start = navStart!!
 
     /** Utility — mirror a detected farmerId into native SessionStore. */
     val rememberFarmerId: (String) -> Unit = { id ->

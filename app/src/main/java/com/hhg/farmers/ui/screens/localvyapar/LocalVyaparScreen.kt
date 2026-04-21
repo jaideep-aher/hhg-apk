@@ -131,7 +131,7 @@ fun LocalVyaparScreen(
                 ui.loading -> LoadingState(modifier = Modifier.weight(1f))
                 ui.error != null -> {
                     Text(
-                        text = ui.error!!,
+                        text = ui.error ?: stringResource(R.string.error_generic),
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(16.dp)
                     )

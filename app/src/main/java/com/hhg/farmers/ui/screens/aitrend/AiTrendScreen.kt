@@ -75,7 +75,7 @@ fun AiTrendScreen(
         when {
             state.isLoading -> LoadingState(modifier = Modifier.padding(innerPadding))
             state.errorMessage != null -> ErrorState(
-                message = state.errorMessage!!,
+                message = state.errorMessage ?: stringResource(R.string.error_generic),
                 onRetry = viewModel::refresh,
                 modifier = Modifier.padding(innerPadding)
             )
