@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useEffect, useState, useCallback } from 'react'
 import type { Farmer } from '@/components/FarmerMap'
 
@@ -84,6 +85,12 @@ export default function Page() {
           >
             ↻ Refresh
           </button>
+          <Link
+            href="/send"
+            style={{ background: '#f97316', color: '#fff', padding: '4px 12px', borderRadius: 6, fontSize: 12, textDecoration: 'none', fontWeight: 600 }}
+          >
+            Send push
+          </Link>
         </div>
       </header>
 

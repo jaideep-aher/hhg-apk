@@ -195,6 +195,7 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.installations)
 
     // Analytics
     implementation(libs.posthog.android)

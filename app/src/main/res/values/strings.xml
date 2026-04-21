@@ -37,6 +37,8 @@
     <string name="home_not_found">शेतकरी आढळला नाही. कृपया वैध आधार क्रमांक टाका.</string>
     <string name="home_checking">वैध आधार क्रमांक. डेटा अस्तित्वात आहे का ते तपासत आहोत…</string>
     <string name="home_error_generic">काही चूक झाली आहे. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="home_rate_limited_accounts">या मोबाइलवरून आज खूप खाती वापरली गेली आहेत. कृपया उद्या पुन्हा प्रयत्न करा.</string>
+    <string name="home_rate_limited_failed">आधार क्रमांक वारंवार चुकीचा टाकला गेला आहे. कृपया उद्या पुन्हा प्रयत्न करा.</string>
 
     <!-- Farmer dashboard -->
     <string name="farmer_aadhaar_label">आधार नं</string>
@@ -219,4 +221,17 @@
 
     <!-- Share -->
     <string name="share_patti_subject">माझी HHG पट्टी</string>
+
+    <!-- Notification channels (shown in Settings › Apps › Hundekari › Notifications).
+         Channel IDs themselves are constants in NotificationChannels.kt and must
+         never change after shipping; only the *display* strings live here. -->
+    <string name="notif_fallback_title">हनुमान हुंडेकरी</string>
+    <string name="notif_channel_generic_name">सामान्य</string>
+    <string name="notif_channel_generic_desc">सामान्य अॅप सूचना</string>
+    <string name="notif_channel_whatsapp_notice_name">नवीन सूचना</string>
+    <string name="notif_channel_whatsapp_notice_desc">व्यवस्थापकाने पाठवलेल्या नव्या सूचना</string>
+    <string name="notif_channel_payment_released_name">पेमेंट जमा</string>
+    <string name="notif_channel_payment_released_desc">तुमच्या पट्टीचे पेमेंट जमा झाल्याची माहिती</string>
+    <string name="notif_channel_rate_alert_name">भाव अलर्ट</string>
+    <string name="notif_channel_rate_alert_desc">तुम्ही ठरवलेला भाव पार झाल्यावर सूचना</string>
 </resources>

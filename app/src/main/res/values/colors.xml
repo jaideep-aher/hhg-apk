@@ -13,4 +13,7 @@
 
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+
+    <!-- Accent applied to the monochrome status-bar notification icon. -->
+    <color name="notification_accent">#F97316</color>
 </resources>

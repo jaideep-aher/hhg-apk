@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Small status-bar notification icon. Must be WHITE on transparent — Android
+  strips any other colour on API 21+ and renders it as a tinted silhouette
+  (using the notification's `.setColor(...)` accent).
+
+  Shape mirrors the launcher sprout so the brand stays consistent. If the
+  launcher artwork is ever finalised, regenerate this as a true monochrome
+  export from the same source (Image Asset Studio → Notification Icons).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,3 C9.5,4 8,6 8,9 C8,9 10.5,8.5 12,7 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,3 C14.5,4 16,6 16,9 C16,9 13.5,8.5 12,7 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11,7 L11,20 L13,20 L13,7 Z" />
+</vector>

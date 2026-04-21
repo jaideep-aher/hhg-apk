@@ -28,6 +28,8 @@
     <string name="home_not_found">Farmer not found. Please enter a valid Aadhaar number.</string>
     <string name="home_checking">Valid number. Checking if data exists&#8230;</string>
     <string name="home_error_generic">Something went wrong. Please try again.</string>
+    <string name="home_rate_limited_accounts">Too many different accounts used from this phone today. Please try again tomorrow.</string>
+    <string name="home_rate_limited_failed">Too many wrong Aadhaar attempts from this phone today. Please try again tomorrow.</string>
 
     <!-- Farmer dashboard -->
     <string name="farmer_aadhaar_label">Aadhaar No.</string>
@@ -206,4 +208,15 @@
     <string name="contact_hours_value">Mon–Sat, 9:00 AM – 7:00 PM</string>
 
     <string name="share_patti_subject">My HHG patti</string>
+
+    <!-- Notification channels -->
+    <string name="notif_fallback_title">Hanuman Hundekari</string>
+    <string name="notif_channel_generic_name">General</string>
+    <string name="notif_channel_generic_desc">General app notifications</string>
+    <string name="notif_channel_whatsapp_notice_name">New notices</string>
+    <string name="notif_channel_whatsapp_notice_desc">New notices posted by the manager</string>
+    <string name="notif_channel_payment_released_name">Payment released</string>
+    <string name="notif_channel_payment_released_desc">When your patti payment is credited</string>
+    <string name="notif_channel_rate_alert_name">Rate alerts</string>
+    <string name="notif_channel_rate_alert_desc">When a rate you set is crossed</string>
 </resources>
