@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  HHG Farmers launcher foreground.
-  Monogram "H" with a sprouting leaf on the right stem.
-  Drawn inside the 66dp adaptive-icon safe zone so no mask (round, squircle,
-  teardrop) clips the mark.
+  Option 1 (final) - HHG monogram "H" with a sprouting leaf.
+  This is the version currently shipped at
+  app/src/main/res/drawable/ic_launcher_foreground.xml.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -11,27 +10,18 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Left bar of H (x 23..37, y 32..76, r 2.5) -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M25.5,32 h9 a2.5,2.5 0 0 1 2.5,2.5 v39 a2.5,2.5 0 0 1 -2.5,2.5 h-9 a2.5,2.5 0 0 1 -2.5,-2.5 v-39 a2.5,2.5 0 0 1 2.5,-2.5 z" />
-
-    <!-- Right bar of H (x 57..71, y 32..76, r 2.5) -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M59.5,32 h9 a2.5,2.5 0 0 1 2.5,2.5 v39 a2.5,2.5 0 0 1 -2.5,2.5 h-9 a2.5,2.5 0 0 1 -2.5,-2.5 v-39 a2.5,2.5 0 0 1 2.5,-2.5 z" />
-
-    <!-- Crossbar (x 23..71, y 50..60, r 2.5) -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M25.5,50 h43 a2.5,2.5 0 0 1 2.5,2.5 v5 a2.5,2.5 0 0 1 -2.5,2.5 h-43 a2.5,2.5 0 0 1 -2.5,-2.5 v-5 a2.5,2.5 0 0 1 2.5,-2.5 z" />
-
-    <!-- Sprouting leaf: grows from the top of the right bar, tips up and to the right -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M63,32 C66,25 74,21 84,21 C83,27 76,32 68,32 Z" />
-
-    <!-- Leaf vein (orange on white, subtle detail) -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#F97316"

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Side-by-side comparison of all 4 logo options -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 340" width="1040" height="340">
+  <style>
+    .label { font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif; font-size: 18px; font-weight: 600; fill: #1f2937; text-anchor: middle; }
+    .sub   { font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif; font-size: 13px; font-weight: 400; fill: #6b7280; text-anchor: middle; }
+  </style>
+
+  <rect width="1040" height="340" fill="#F9FAFB"/>
+
+  <!-- Icon 1 -->
+  <g transform="translate(40,40)">
+    <image href="option-1-monogram.svg" width="200" height="200"/>
+    <text class="label" x="100" y="236">Option 1</text>
+    <text class="sub"   x="100" y="258">HHG monogram + leaf</text>
+  </g>
+
+  <!-- Icon 2 -->
+  <g transform="translate(280,40)">
+    <image href="option-2-wheat.svg" width="200" height="200"/>
+    <text class="label" x="100" y="236">Option 2</text>
+    <text class="sub"   x="100" y="258">Wheat ear</text>
+  </g>
+
+  <!-- Icon 3 -->
+  <g transform="translate(520,40)">
+    <image href="option-3-ha-sprout.svg" width="200" height="200"/>
+    <text class="label" x="100" y="236">Option 3</text>
+    <text class="sub"   x="100" y="258">9 as sprout</text>
+  </g>
+
+  <!-- Icon 4 -->
+  <g transform="translate(760,40)">
+    <image href="option-4-sunrise.svg" width="200" height="200"/>
+    <text class="label" x="100" y="236">Option 4</text>
+    <text class="sub"   x="100" y="258">Sunrise over field</text>
+  </g>
+</svg>

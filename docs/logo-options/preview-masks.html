@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Option 1 - mask test</title>
+  <style>
+    body{margin:0;background:#F9FAFB;font:600 14px -apple-system,"SF Pro Text",system-ui,sans-serif;color:#1f2937;}
+    .row{display:flex;gap:32px;padding:32px;align-items:flex-end;justify-content:center;}
+    .cell{text-align:center;}
+    .cell svg{display:block;margin:0 auto;}
+    .squircle{clip-path: inset(0 round 24%);}
+    .round   {clip-path: circle(50%);}
+    .rounded {clip-path: inset(0 round 20%);}
+    .teardrop{clip-path: path('M 0 80 L 0 30 C 0 13 13 0 30 0 L 220 0 C 237 0 250 13 250 30 L 250 220 C 250 237 237 250 220 250 C 97 250 0 153 0 30 Z');}
+    .label{margin-top:8px;color:#6b7280;font-weight:500;font-size:12px;}
+    img{width:250px;height:250px;display:block;background:#F97316;}
+    .squircle img{border-radius:60px;}
+    .round    img{border-radius:50%;}
+    .rounded  img{border-radius:50px;}
+  </style>
+</head>
+<body>
+  <div class="row">
+    <div class="cell squircle"><img src="option-1-preview.png"/><div class="label">Squircle (Pixel)</div></div>
+    <div class="cell round"><img src="option-1-preview.png"/><div class="label">Circle (OnePlus)</div></div>
+    <div class="cell rounded"><img src="option-1-preview.png"/><div class="label">Rounded (Samsung)</div></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Option 3 -- Devanagari "ह" (ha) redrawn as a sprout.
+  Drop-in replacement for app/src/main/res/drawable/ic_launcher_foreground.xml
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shirorekha (top horizontal bar) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,31 h50 a1,1 0 0 1 1,1 v4 a1,1 0 0 1 -1,1 h-50 a1,1 0 0 1 -1,-1 v-4 a1,1 0 0 1 1,-1 z" />
+
+    <!-- Body of ह as a thick stroke curving into a sprout -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="7.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M37,37 L37,58 C37,71.5 49,79 61,75.5 C72,72 75.5,60.5 71.5,53 C69.5,49.5 65.5,48 62,50 C59,51.5 58,55 60,58" />
+
+    <!-- Leaf blooming from tail -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,52.5 C78,49 86.5,52.5 89,62 C82.5,64.5 74.5,62.5 70,58 Z" />
+
+    <!-- Seed dot above -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,24 m-3,0 a3,3 0 1 0 6,0 a3,3 0 1 0 -6,0" />
+</vector>
