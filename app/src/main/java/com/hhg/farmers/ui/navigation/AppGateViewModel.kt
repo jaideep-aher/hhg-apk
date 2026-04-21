@@ -2,6 +2,7 @@ package com.hhg.farmers.ui.navigation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hhg.farmers.data.model.AppConfig
 import com.hhg.farmers.service.update.UpdateGateState
 import com.hhg.farmers.service.update.UpdateManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +24,14 @@ class AppGateViewModel @Inject constructor(
 ) : ViewModel() {
 
     val gate: StateFlow<UpdateGateState> = updateManager.gateState
+
+    /**
+     * Live remote config. Starts at the hard-coded defaults and flips to the
+     * backend-fetched values once [UpdateManager.checkVersionGate] completes.
+     * The scaffold passes this straight into [MainScaffold]'s drawer + nav
+     * graph so every WebView screen picks up the latest `webBaseUrl`.
+     */
+    val config: StateFlow<AppConfig> = updateManager.config
 
     init {
         viewModelScope.launch {

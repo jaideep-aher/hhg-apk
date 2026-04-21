@@ -51,6 +51,14 @@ class UpdateManager @Inject constructor(
     /** Observed by MainScaffold — when [UpdateGateState.ForceUpdate], the whole app is gated. */
     val gateState: StateFlow<UpdateGateState> = _gateState.asStateFlow()
 
+    /**
+     * Last-known remote config. Seeded with hard-coded defaults so callers
+     * (drawer, webview screens, etc.) always have a usable value even before
+     * the first /api/config fetch completes, or if the backend is unreachable.
+     */
+    private val _config = MutableStateFlow(AppConfig())
+    val config: StateFlow<AppConfig> = _config.asStateFlow()
+
     /* ─────────────────── Layer 1: our own version gate ─────────────────────── */
 
     /**
@@ -71,6 +79,7 @@ class UpdateManager @Inject constructor(
         val currentVersion = BuildConfig.VERSION_CODE
         Log.i(TAG, "Version gate: installed=$currentVersion, min=${config.minVersionCode}, latest=${config.latestVersionCode}")
 
+        _config.value = config
         _gateState.value = when {
             currentVersion < config.minVersionCode ->
                 UpdateGateState.ForceUpdate(config)

@@ -115,6 +115,7 @@
     <!-- Network / backend errors (safe, never leak URLs or host names) -->
     <string name="error_generic">काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.</string>
     <string name="error_no_internet">इंटरनेट कनेक्शन नाही. कृपया Wi-Fi किंवा मोबाईल डेटा चालू करा.</string>
+    <string name="error_connection_title">कनेक्शन समस्या</string>
     <string name="error_timeout">सर्व्हरकडून उत्तर मिळायला वेळ लागला. पुन्हा प्रयत्न करा.</string>
     <string name="error_server">सर्व्हरची समस्या आहे. थोड्या वेळाने पुन्हा प्रयत्न करा.</string>
     <string name="error_request_failed">विनंती पूर्ण होऊ शकली नाही.</string>

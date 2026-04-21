@@ -108,7 +108,55 @@ data class AppConfig(
     val forceUpdateTitle: String = "अॅप अपडेट करा",
     val forceUpdateMessage: String =
         "पुढे जाण्यासाठी कृपया अॅपचे नवीन व्हर्जन इन्स्टॉल करा. " +
-        "जुने व्हर्जन आता सपोर्टेड नाही."
+        "जुने व्हर्जन आता सपोर्टेड नाही.",
+
+    /**
+     * Base origin of the HHG Next.js website whose pages the Android shell
+     * hosts inside WebViews. Every content screen (home, farmer dashboard,
+     * hundekari rates, AI trends, seeds, local vyapar, about, ...) loads a
+     * route under this origin. Shipping this in AppConfig means we can
+     * migrate to a production domain (e.g. https://www.hanumanksk.in)
+     * without a new APK — just flip WEB_BASE_URL in Railway.
+     *
+     * Default is the temporary staging host we use until the final domain
+     * is provisioned. It MUST NOT be a vercel.app / railway.app URL — those
+     * hostnames should never appear to end-users.
+     */
+    val webBaseUrl: String = "https://1.aher.dev",
+
+    /**
+     * Secondary web origin to fall back to if [webBaseUrl] is unreachable
+     * (DNS failure, outage, etc.). Leave blank to disable fallback.
+     * The WebView layer re-tries the same path on this host exactly once
+     * per navigation, never more.
+     */
+    val webBaseUrlFallback: String = "",
+
+    /**
+     * Remote-driven drawer menu. When non-empty, [MainScaffold]'s drawer
+     * renders these entries instead of the baked-in defaults — so a new
+     * page added to the website can appear in the app without an APK
+     * release. Each entry's `path` is appended to [webBaseUrl].
+     *
+     * Entries whose `requiresFarmerId` is true are only enabled after the
+     * farmer has signed in (their Aadhaar is stored in SessionStore); tapping
+     * them while signed-out routes to the search page instead.
+     */
+    val menuItems: List<RemoteMenuItem> = emptyList()
+)
+
+/**
+ * A single remote-configurable drawer item. Keep titles short (≤24 chars) so
+ * they render on a 320dp-wide drawer without wrapping. `path` must start with
+ * `/` — it's appended to [AppConfig.webBaseUrl].
+ */
+@JsonClass(generateAdapter = true)
+data class RemoteMenuItem(
+    val id: String,
+    val titleMr: String,
+    val titleEn: String,
+    val path: String,
+    val requiresFarmerId: Boolean = false
 )
 
 @JsonClass(generateAdapter = true)

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,12 +12,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,16 +39,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.hhg.farmers.R
+import com.hhg.farmers.data.model.AppConfig
+import com.hhg.farmers.data.model.RemoteMenuItem
 import com.hhg.farmers.data.session.SessionStore
 import com.hhg.farmers.service.update.UpdateGateState
 import com.hhg.farmers.ui.components.LoadingState
@@ -60,13 +62,14 @@ import kotlinx.coroutines.launch
 /**
  * Top-level scaffold.
  *
- * TWO THINGS HAPPEN BEFORE ANY SCREEN IS SHOWN:
- *   1. [AppGateViewModel] fetches GET /api/config on launch.
- *   2. Until the result lands, the whole app is a loading spinner.
- *
- * If the backend says our version is below `minVersionCode`, [ForceUpdateScreen]
- * takes over the entire surface — no navigation, no back button, no dismiss.
- * This is our primary force-update path and works for both Play Store and sideloaded APKs.
+ * ORDER OF THINGS ON LAUNCH:
+ *   1. [AppGateViewModel] fetches GET /api/config once per process.
+ *   2. While the fetch is in flight the whole app is a loading spinner.
+ *   3. If the backend says our version is below `minVersionCode`, [ForceUpdateScreen]
+ *      takes over — no navigation, no back button, no dismiss.
+ *   4. Otherwise the live [AppConfig] is passed into [AppContent] so every WebView
+ *      screen picks up the runtime-configured `webBaseUrl` and (optional) remote
+ *      drawer menu items.
  *
  * Google Play's In-App Updates IMMEDIATE flow runs separately from [MainActivity.onResume]
  * and will overlay its own full-screen Play UI on top of this whenever it succeeds.
@@ -78,13 +81,15 @@ fun MainScaffold(
     gateViewModel: AppGateViewModel = hiltViewModel()
 ) {
     val gate by gateViewModel.gate.collectAsStateWithLifecycle()
+    val config by gateViewModel.config.collectAsStateWithLifecycle()
 
     when (val state = gate) {
         is UpdateGateState.Checking -> LoadingState(modifier = Modifier)
         is UpdateGateState.ForceUpdate -> ForceUpdateScreen(config = state.config)
         is UpdateGateState.Allowed -> AppContent(
             navController = navController,
-            sessionStore = sessionStore
+            sessionStore = sessionStore,
+            config = config
         )
     }
 }
@@ -92,12 +97,12 @@ fun MainScaffold(
 @Composable
 private fun AppContent(
     navController: NavHostController,
-    sessionStore: SessionStore
+    sessionStore: SessionStore,
+    config: AppConfig
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Strip query-param suffix so "notice?title=…" still matches Routes.NOTICE_DETAIL
     val isRootScreen = Routes.bottomNavRoots.any { root ->
         currentRoute == root || currentRoute?.startsWith(root) == true
     }
@@ -106,18 +111,18 @@ private fun AppContent(
     val scope = rememberCoroutineScope()
 
     // Swipe-gesture opens the drawer only on root screens — avoids hijacking
-    // swipes inside detail screens like FarmerDashboardScreen.
+    // swipes inside detail screens like the farmer dashboard webview.
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = isRootScreen,
         drawerContent = {
             AppDrawerContent(
                 currentRoute = currentRoute,
+                config = config,
                 onItemClick = { route ->
                     scope.launch { drawerState.close() }
                     if (route != currentRoute) {
                         navController.navigate(route) {
-                            // For root destinations, keep the back stack clean.
                             if (route in Routes.bottomNavRoots) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -143,7 +148,6 @@ private fun AppContent(
                                 selected = selected,
                                 onClick = {
                                     navController.navigate(item.route) {
-                                        // Pop up to the graph start so back-stack stays clean
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                         }
@@ -174,6 +178,7 @@ private fun AppContent(
             AppNavHost(
                 navController = navController,
                 sessionStore = sessionStore,
+                config = config,
                 onOpenDrawer = { scope.launch { drawerState.open() } },
                 modifier = Modifier.padding(innerPadding)
             )
@@ -182,23 +187,27 @@ private fun AppContent(
 }
 
 /**
- * Contents of the side drawer: a brand header plus the full set of app destinations.
- *
- * Items mirror the website's nav: Home, Market Rates, AI Trend, Seeds, About, Contact,
- * Settings. Selected state is driven by the current nav route.
+ * Drawer content — pulls items from [AppConfig.menuItems] when non-empty, and
+ * falls back to the baked-in default set otherwise. This lets a new page on
+ * the website appear in the app the next time someone opens it, with no APK
+ * release required.
  */
 @Composable
 private fun AppDrawerContent(
     currentRoute: String?,
+    config: AppConfig,
     onItemClick: (String) -> Unit
 ) {
+    val locale = java.util.Locale.getDefault().language
+    val useMarathi = locale.startsWith("mr")
+
     ModalDrawerSheet {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            // ── Brand header (sprout + wordmark like the web Header sheet) ────
+            // ── Brand header ──────────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -229,74 +238,137 @@ private fun AppDrawerContent(
                 )
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.padding(vertical = 4.dp))
 
-            // ── Root destinations ─────────────────────────────────────────────
-            DrawerItem(
-                label = stringResource(R.string.menu_home),
-                icon = Icons.Filled.Home,
-                route = Routes.HOME,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-            DrawerItem(
-                label = stringResource(R.string.menu_market),
-                icon = Icons.Filled.TrendingUp,
-                route = Routes.MARKET_HUB,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-            DrawerItem(
-                label = stringResource(R.string.menu_ai_trend),
-                icon = Icons.Filled.AutoAwesome,
-                route = Routes.AI_TREND,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-            DrawerItem(
-                label = stringResource(R.string.menu_seeds),
-                icon = Icons.Filled.Grass,
-                route = Routes.SEEDS_LIST,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-            DrawerItem(
-                label = stringResource(R.string.nav_local_vyapari),
-                icon = Icons.Filled.Map,
-                route = Routes.LOCAL_VYAPARI,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-
-            Spacer(Modifier.height(8.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
-            Spacer(Modifier.height(8.dp))
-
-            // ── Info destinations ─────────────────────────────────────────────
-            DrawerItem(
-                label = stringResource(R.string.menu_about),
-                icon = Icons.Filled.Info,
-                route = Routes.ABOUT,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-            DrawerItem(
-                label = stringResource(R.string.menu_contact),
-                icon = Icons.Filled.Phone,
-                route = Routes.CONTACT,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-            DrawerItem(
-                label = stringResource(R.string.menu_settings),
-                icon = Icons.Filled.Settings,
-                route = Routes.SETTINGS,
-                currentRoute = currentRoute,
-                onClick = onItemClick
-            )
-            Spacer(Modifier.height(16.dp))
+            if (config.menuItems.isNotEmpty()) {
+                RemoteDrawerItems(
+                    items = config.menuItems,
+                    useMarathi = useMarathi,
+                    onItemClick = onItemClick
+                )
+            } else {
+                DefaultDrawerItems(
+                    currentRoute = currentRoute,
+                    onItemClick = onItemClick
+                )
+            }
+            Spacer(Modifier.padding(vertical = 8.dp))
         }
     }
+}
+
+/**
+ * The built-in drawer used when the backend hasn't supplied a remote menu.
+ * Mirrors the website's top nav: Home, Hundekari Rates, AI Trend, Seeds,
+ * Local Vyapar, About, Contact, Settings.
+ */
+@Composable
+private fun DefaultDrawerItems(
+    currentRoute: String?,
+    onItemClick: (String) -> Unit
+) {
+    DrawerItem(
+        label = stringResource(R.string.menu_home),
+        icon = Icons.Filled.Home,
+        route = Routes.HOME,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+    DrawerItem(
+        label = stringResource(R.string.menu_market),
+        icon = Icons.Filled.TrendingUp,
+        route = Routes.MARKET_HUB,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+    DrawerItem(
+        label = stringResource(R.string.menu_ai_trend),
+        icon = Icons.Filled.AutoAwesome,
+        route = Routes.AI_TREND,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+    DrawerItem(
+        label = stringResource(R.string.menu_seeds),
+        icon = Icons.Filled.Grass,
+        route = Routes.SEEDS_LIST,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+    DrawerItem(
+        label = stringResource(R.string.nav_local_vyapari),
+        icon = Icons.Filled.Map,
+        route = Routes.LOCAL_VYAPARI,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+
+    Spacer(Modifier.padding(vertical = 4.dp))
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+    Spacer(Modifier.padding(vertical = 4.dp))
+
+    DrawerItem(
+        label = stringResource(R.string.menu_about),
+        icon = Icons.Filled.Info,
+        route = Routes.ABOUT,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+    DrawerItem(
+        label = stringResource(R.string.menu_contact),
+        icon = Icons.Filled.Phone,
+        route = Routes.CONTACT,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+    DrawerItem(
+        label = stringResource(R.string.menu_settings),
+        icon = Icons.Filled.Settings,
+        route = Routes.SETTINGS,
+        currentRoute = currentRoute,
+        onClick = onItemClick
+    )
+}
+
+/**
+ * Drawer populated from the backend's `menuItems` list. Settings stays pinned
+ * at the bottom because it's native-owned (language switch drives
+ * `AppCompatDelegate.setApplicationLocales`, logout clears SessionStore) —
+ * the website can't replace it with a webview page.
+ */
+@Composable
+private fun RemoteDrawerItems(
+    items: List<RemoteMenuItem>,
+    useMarathi: Boolean,
+    onItemClick: (String) -> Unit
+) {
+    items.forEach { item ->
+        val label = (if (useMarathi) item.titleMr else item.titleEn).ifBlank { item.titleEn }
+        NavigationDrawerItem(
+            label = { Text(label, fontWeight = FontWeight.Medium) },
+            icon = { Icon(Icons.Filled.Language, contentDescription = null) },
+            selected = false,
+            onClick = { onItemClick(Routes.remotePage(item.path)) },
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = HhgOrange500.copy(alpha = 0.12f),
+                selectedIconColor = HhgOrange500,
+                selectedTextColor = HhgOrange500,
+                unselectedIconColor = OnSurface.copy(alpha = 0.6f),
+                unselectedTextColor = OnSurface
+            )
+        )
+    }
+    Spacer(Modifier.padding(vertical = 4.dp))
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+    Spacer(Modifier.padding(vertical = 4.dp))
+    DrawerItem(
+        label = stringResource(R.string.menu_settings),
+        icon = Icons.Filled.Settings,
+        route = Routes.SETTINGS,
+        currentRoute = null,
+        onClick = onItemClick
+    )
 }
 
 @Composable

@@ -113,6 +113,7 @@
     <!-- Network / backend errors (safe, never leak URLs or host names) -->
     <string name="error_generic">Something went wrong. Please try again.</string>
     <string name="error_no_internet">No internet connection. Please turn on Wi-Fi or mobile data.</string>
+    <string name="error_connection_title">Connection problem</string>
     <string name="error_timeout">The server took too long to respond. Please try again.</string>
     <string name="error_server">Server issue. Please try again in a while.</string>
     <string name="error_request_failed">Could not complete the request.</string>
