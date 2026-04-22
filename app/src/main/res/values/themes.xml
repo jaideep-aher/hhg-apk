@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      Base theme (XML) — only used for splash / before Compose takes over.
-      Actual app theming is in Kotlin (ui/theme/Theme.kt) using Material 3.
-    -->
-    <!--
-      XML theme is only used during the launch window (before Compose inflates).
-      MUST descend from Theme.AppCompat because MainActivity is an AppCompatActivity
-      (needed for AppCompatDelegate.setApplicationLocales to drive Marathi/English switching).
-      Day/night is handled at runtime in `ui/theme/Theme.kt` for Compose content.
+      Base theme (XML) — only used for the launch window (before Compose
+      inflates). Actual app theming is in Kotlin (ui/theme/Theme.kt) using
+      Material 3, and edge-to-edge is set up programmatically in
+      MainActivity.onCreate() via `enableEdgeToEdge()`.
+
+      MUST descend from Theme.AppCompat because MainActivity is an
+      AppCompatActivity (needed for AppCompatDelegate.setApplicationLocales
+      to drive Marathi/English switching). Day/night is handled at runtime
+      in `ui/theme/Theme.kt` for Compose content.
+
+      EDGE-TO-EDGE / ANDROID 15:
+      `android:statusBarColor` and `android:navigationBarColor` are
+      deliberately NOT set here. Both map to the deprecated
+      Window.setStatusBarColor / Window.setNavigationBarColor APIs in
+      Android 15 (SDK 35), which triggers a Play Console warning and is
+      ignored on 35+ anyway since system bars are forced transparent
+      under edge-to-edge. On pre-15 devices `enableEdgeToEdge()` takes
+      care of the transparent scrim + correct icon contrast.
     -->
     <style name="Theme.HHGFarmers" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="android:statusBarColor">@color/hhg_orange_500</item>
         <item name="android:windowBackground">@color/white</item>
     </style>
 </resources>

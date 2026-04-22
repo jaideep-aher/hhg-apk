@@ -55,10 +55,28 @@ android {
         applicationId = "com.tec.agrofixpartner"
         minSdk = 24           // Android 7.0 — covers ~97% of devices; safe for 2018+ hardware
         targetSdk = 35
-        versionCode = 16
+        versionCode = 18
         // Shown in Settings screen (from BuildConfig.VERSION_NAME) and in every
         // Firestore location ping + Analytics event. Keep this as a short string
         // that's easy to read over a support call.
+        //
+        // v18 — Android 15 edge-to-edge compliance + APMC market data rollout:
+        //   * Removed `android:statusBarColor` from Theme.HHGFarmers. That XML
+        //     attribute maps to the deprecated Window.setStatusBarColor which
+        //     Play Console was flagging under the Android 15 edge-to-edge
+        //     advisory. `enableEdgeToEdge()` already runs in MainActivity and
+        //     on SDK 35 the system bars are forced transparent anyway, so the
+        //     theme attribute was both ignored AND triggering the warning.
+        //   * Bumped androidx.activity 1.9.3 → 1.10.1. The 1.10+ release
+        //     refactors `enableEdgeToEdge()` so it no longer routes through
+        //     setStatusBarColor / setNavigationBarColor /
+        //     LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES on SDK 35, which was
+        //     the other source of the Play Console deprecated-API warnings
+        //     (un0.G / vn0.G / xn0.G / m2.s in the obfuscated report).
+        //   * Backend now powers a full APMC market-rates experience (Pune
+        //     and Mumbai-Vashi APMC + Hundekari merged into "best market"),
+        //     daily scrape of apmcmumbai.org for veg / fruit / turbhe yards,
+        //     Marathi phonetic search in the commodity picker.
         //
         // v16 — Play Store compliance:
         //   * Declare com.google.android.gms.permission.AD_ID in the manifest
@@ -84,7 +102,7 @@ android {
         //
         // v12 — diagnostics pass for empty-Firebase-dashboard debugging.
         // v11 — adds Firebase Firestore location tracking and Analytics.
-        versionName = "16"
+        versionName = "18"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
