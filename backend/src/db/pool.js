@@ -37,10 +37,13 @@ function makePool(url, label) {
   return pool;
 }
 
-// ── Three logical databases ───────────────────────────────────────────────────
+// ── Four logical databases ────────────────────────────────────────────────────
 // r    → read-only on AWS RDS: farmer / patti / rates / notices reads
 // w    → read-write on AWS RDS: telemetry inserts and future writes
 // neon → Neon Postgres: AgriSight market-trend data (separate owner DB)
+// apmc → Railway Postgres (fresh, empty): APMC mandi prices from Agmarknet etc.
+//        Kept isolated from RDS so ingest churn + schema changes don't touch
+//        production farmer data. Reads and writes go through this single pool.
 //
 // Each URL var is optional. If a specific R/W var is unset we fall back to the
 // legacy single DATABASE_URL so existing Railway deploys keep working unchanged.
@@ -55,14 +58,19 @@ const writeUrl   = process.env.DATABASE_URLW
 const neonUrl    = process.env.NEON_DB_CONNECTION_STRING
                 || process.env.NEON_DATABASE_URL;
 
+const apmcUrl    = process.env.APMC_DATABASE_URL
+                || process.env.APMC_DB_URL;
+
 const r    = makePool(primaryUrl, 'r');
 const w    = makePool(writeUrl,   'w');
 const neon = makePool(neonUrl,    'neon');
+const apmc = makePool(apmcUrl,    'apmc');
 
 // Default export is the read pool — `require('../db/pool')` still returns a
 // Pool-like object with `.query()` for older call sites. Named exports (`r`,
-// `w`, `neon`) let new code pick the right pool explicitly.
+// `w`, `neon`, `apmc`) let new code pick the right pool explicitly.
 module.exports = r || { query: () => Promise.reject(new Error('No read DB configured')) };
 module.exports.r = r;
 module.exports.w = w;
 module.exports.neon = neon;
+module.exports.apmc = apmc;
