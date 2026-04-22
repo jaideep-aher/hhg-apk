@@ -29,6 +29,27 @@ export default function MarketRatesPage() {
         </CardFooter>
       </Card>
 
+      <Card className="w-full max-w-md mx-auto border-2 border-green-600">
+        <CardContent className="pt-6">
+          <h2 className="text-xl font-semibold text-center mb-4">
+            तुमच्या मालाला सर्वोत्तम भाव कुठे?
+          </h2>
+          <p className="text-center text-sm text-gray-600 mb-4">
+            महाराष्ट्रातील सर्व APMC मार्केटची तुलना — आजचे सर्वात जास्त भाव
+            देणारे मार्केट शोधा.
+          </p>
+        </CardContent>
+        <CardFooter>
+          <Button
+            className="w-full bg-green-600 hover:bg-green-700"
+            onClick={() => router.push("/dailyrate/best")}
+            data-attr="Daily Market Rate Button Best"
+          >
+            सर्वोत्तम भाव शोधा
+          </Button>
+        </CardFooter>
+      </Card>
+
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="pt-6">
           <h2 className="text-xl font-semibold text-center mb-4">

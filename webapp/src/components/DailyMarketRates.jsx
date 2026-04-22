@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import {
@@ -29,169 +29,132 @@ import {
 } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import LoadingSkeleton from "@/components/loading-skeleton";
+import CommodityPicker from "@/components/CommodityPicker";
 import { useQuery } from "@tanstack/react-query";
-import { getMarketRates } from "@/server/dbfunctions";
 import { CartesianGrid, Line, LineChart, LabelList, XAxis } from "recharts";
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import {
+  fetchMarkets,
+  fetchCommodities,
+  fetchPrices,
+} from "@/lib/apmcApi";
+import { formatAmount } from "@/lib/priceFormat";
 
-const marketMapping = [
-  { english: "pune", marathi: "पुणे" },
-  { english: "mumbai", marathi: "मुंबई" },
-  { english: "nagpur", marathi: "नागपूर" },
-  { english: "chennai", marathi: "चेन्नई" },
-];
-
-const vegetables = [
-  { id: 1, name: "फ्लॉवर" },
-  { id: 2, name: "मिरची" },
-  { id: 3, name: "कोबी" },
-  { id: 4, name: "फरशी" },
-  { id: 5, name: "गवार" },
-  { id: 6, name: "चवळी" },
-  { id: 7, name: "भेंडी" },
-  { id: 8, name: "काकडी" },
-  { id: 9, name: "वाटाणा" },
-  { id: 10, name: "हिरवी वांगी" },
-  { id: 11, name: "टोमॅटो" },
-  { id: 12, name: "कांदा" },
-  { id: 13, name: "आले" },
-  { id: 14, name: "ढोबळी मिरची" },
-  { id: 15, name: "लिंबू" },
-  { id: 16, name: "पांढरी काकडी" },
-  { id: 17, name: "बटाटा" },
-  { id: 18, name: "गाजर" },
-  { id: 19, name: "कारले" },
-  { id: 20, name: "दोडका" },
-  { id: 21, name: "डाळिंब" },
-  { id: 22, name: "सफरचंद" },
-  { id: 23, name: "नागपुरी संत्री" },
-  { id: 24, name: "पपई" },
-];
-
+/**
+ * Marathi-first APMC rate explorer.
+ *
+ * Markets and commodities are loaded from the Express APMC API at runtime —
+ * no hardcoded arrays — so adding a new mandi or crop is a one-row SQL insert
+ * on the server, not a webapp deploy.
+ *
+ * Price data is fetched as a 7-day series from /api/apmc/prices, then rendered
+ * as a min/max/modal line chart (recharts) plus a sortable daily table.
+ */
 export default function DailyMarketRates() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [selectedMarket, setSelectedMarket] = useState("");
-  const [selectedVegetable, setSelectedVegetable] = useState("");
 
-  // Initialize from URL params
+  const { data: markets = [], isLoading: marketsLoading } = useQuery({
+    queryKey: ["apmc", "markets"],
+    queryFn: fetchMarkets,
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const { data: commodities = [], isLoading: commoditiesLoading } = useQuery({
+    queryKey: ["apmc", "commodities"],
+    queryFn: () => fetchCommodities(),
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const selectedMarket = searchParams.get("market") || "";
+  const selectedCommodity = searchParams.get("commodity") || "";
+
+  // Default-select the first market and commodity once the API responses land
+  // (so a fresh open shows something instead of two empty dropdowns).
   useEffect(() => {
-    const market = searchParams.get("market");
-    const vegetable = searchParams.get("vegetable");
-
-    if (market && marketMapping.some((m) => m.english === market)) {
-      setSelectedMarket(market);
+    if (
+      (!selectedMarket && markets.length) ||
+      (!selectedCommodity && commodities.length)
+    ) {
+      const params = new URLSearchParams(searchParams.toString());
+      if (!selectedMarket && markets.length) {
+        params.set("market", markets[0].slug);
+      }
+      if (!selectedCommodity && commodities.length) {
+        params.set("commodity", commodities[0].slug);
+      }
+      router.replace(`/dailyrate/market?${params.toString()}`);
     }
+  }, [markets, commodities, selectedMarket, selectedCommodity, router, searchParams]);
 
-    if (vegetable && vegetables.some((v) => v.id.toString() === vegetable)) {
-      setSelectedVegetable(vegetable);
-    }
-  }, [searchParams]);
-
-  const getMarathiMarketName = (englishName) => {
-    return (
-      marketMapping.find((m) => m.english === englishName)?.marathi ||
-      englishName
-    );
-  };
-
-  const updateURL = (market, vegetable) => {
-    // Only update URL if both values are present
-    if (market && vegetable) {
-      const params = new URLSearchParams();
-      params.set("market", market);
-      params.set("vegetable", vegetable);
-      router.push(`/dailyrate/market?${params.toString()}`);
-    }
-  };
-
-  const handleMarketChange = (value) => {
-    setSelectedMarket(value);
-    if (selectedVegetable) {
-      updateURL(value, selectedVegetable);
-    }
-  };
-
-  const handleVegetableChange = (value) => {
-    setSelectedVegetable(value);
-    if (selectedMarket) {
-      updateURL(selectedMarket, value);
-    }
+  const setParam = (key, value) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(key, value);
+    router.push(`/dailyrate/market?${params.toString()}`);
   };
 
   const {
-    data: marketRates,
-    isLoading,
-    error,
+    data: priceResponse,
+    isLoading: pricesLoading,
+    error: pricesError,
     refetch,
   } = useQuery({
-    queryKey: ["marketRates", selectedMarket, selectedVegetable],
-    queryFn: () => getMarketRates(selectedMarket, selectedVegetable),
-    enabled: Boolean(selectedMarket && selectedVegetable),
+    queryKey: ["apmc", "prices", selectedMarket, selectedCommodity],
+    queryFn: () =>
+      fetchPrices({
+        market: selectedMarket,
+        commodity: selectedCommodity,
+        days: 7,
+      }),
+    enabled: Boolean(selectedMarket && selectedCommodity),
     keepPreviousData: true,
     staleTime: 1000 * 60 * 5,
   });
 
-  const searchResults = marketRates || [];
+  const rows = priceResponse?.rows || [];
 
-  if (isLoading) return <LoadingSkeleton />;
-  if (error) return <div>Error fetching data: {error.message}</div>;
+  const selectedMarketRow = useMemo(
+    () => markets.find((m) => m.slug === selectedMarket),
+    [markets, selectedMarket]
+  );
+  const selectedCommodityRow = useMemo(
+    () => commodities.find((c) => c.slug === selectedCommodity),
+    [commodities, selectedCommodity]
+  );
 
-  const chartConfig = {
-    min: {
-      label: "किमान",
-      color: "hsl(var(--chart-1))",
-    },
-    max: {
-      label: "कमाल",
-      color: "hsl(var(--chart-2))",
-    },
-    avg: {
-      label: "सरासरी",
-      color: "hsl(var(--chart-3))",
-    },
-  };
+  const hasData = rows.some(
+    (r) =>
+      (Number(r.minPrice) || 0) > 0 ||
+      (Number(r.maxPrice) || 0) > 0 ||
+      (Number(r.modalPrice) || 0) > 0
+  );
 
   const getPercentageChange = () => {
-    if (!searchResults || searchResults.length < 2) return 0;
-    const oldestAvg = searchResults.find(
-      (result) =>
-        result[`${selectedMarket}avg`] !== null &&
-        result[`${selectedMarket}avg`] > 0
-    )?.[`${selectedMarket}avg`];
-    const newestAvg = [...searchResults]
+    if (!rows.length) return 0;
+    const oldestModal = rows.find((r) => Number(r.modalPrice) > 0)?.modalPrice;
+    const newestModal = [...rows]
       .reverse()
-      .find(
-        (result) =>
-          result[`${selectedMarket}avg`] !== null &&
-          result[`${selectedMarket}avg`] > 0
-      )?.[`${selectedMarket}avg`];
-    if (!oldestAvg || !newestAvg) return 0;
-    return (((newestAvg - oldestAvg) / oldestAvg) * 100).toFixed(1);
+      .find((r) => Number(r.modalPrice) > 0)?.modalPrice;
+    if (!oldestModal || !newestModal) return 0;
+    return (((newestModal - oldestModal) / oldestModal) * 100).toFixed(1);
   };
 
-  const selectedVegetableName = vegetables.find(
-    (v) => v.id.toString() === selectedVegetable
-  )?.name;
+  const chartConfig = {
+    minPrice: { label: "किमान", color: "hsl(var(--chart-1))" },
+    maxPrice: { label: "कमाल", color: "hsl(var(--chart-2))" },
+    modalPrice: { label: "सरासरी", color: "hsl(var(--chart-3))" },
+  };
 
-  const hasData = searchResults.some(
-    (result) =>
-      result[`${selectedMarket}min`] !== null &&
-      result[`${selectedMarket}max`] !== null &&
-      result[`${selectedMarket}avg`] !== null &&
-      (result[`${selectedMarket}min`] > 0 ||
-        result[`${selectedMarket}max`] > 0 ||
-        result[`${selectedMarket}avg`] > 0)
+  const sortedRows = useMemo(
+    () => [...rows].sort((a, b) => new Date(b.date) - new Date(a.date)),
+    [rows]
   );
 
-  const sortedResults = [...searchResults].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
-  );
+  if (marketsLoading || commoditiesLoading) return <LoadingSkeleton />;
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -201,47 +164,51 @@ export default function DailyMarketRates() {
             <h2 className="text-xl font-semibold">मार्केट आणि माल निवडा</h2>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select value={selectedMarket} onValueChange={handleMarketChange}>
+            <Select
+              value={selectedMarket}
+              onValueChange={(v) => setParam("market", v)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="मार्केट निवडा" />
               </SelectTrigger>
               <SelectContent>
-                {marketMapping.map((market) => (
-                  <SelectItem key={market.english} value={market.english}>
-                    {market.marathi}
+                {markets.map((m) => (
+                  <SelectItem key={m.slug} value={m.slug}>
+                    {m.nameMr}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select
-              value={selectedVegetable}
-              onValueChange={handleVegetableChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="माल निवडा" />
-              </SelectTrigger>
-              <SelectContent>
-                {vegetables.map((veg) => (
-                  <SelectItem key={veg.id} value={veg.id.toString()}>
-                    {veg.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CommodityPicker
+              commodities={commodities}
+              value={selectedCommodity}
+              onChange={(v) => setParam("commodity", v)}
+              placeholder="माल निवडा — शोधा किंवा बोला"
+            />
           </CardContent>
           <CardFooter>
             <Button
               className="w-full"
-              onClick={refetch}
-              disabled={!selectedMarket || !selectedVegetable || isLoading}
+              onClick={() => refetch()}
+              disabled={!selectedMarket || !selectedCommodity || pricesLoading}
             >
-              {isLoading ? "शोधत आहे..." : "शोधा"}
+              {pricesLoading ? "शोधत आहे..." : "शोधा"}
             </Button>
           </CardFooter>
         </Card>
       </div>
 
-      {searchResults.length > 0 && (
+      {pricesError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>माहिती मिळाली नाही</AlertTitle>
+          <AlertDescription>
+            कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {rows.length > 0 && (
         <div className="flex flex-col space-y-4">
           {!hasData && (
             <Alert variant="destructive">
@@ -258,25 +225,23 @@ export default function DailyMarketRates() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-xl font-bold">
-                    {getMarathiMarketName(selectedMarket)} चे गेल्या ७ दिवसांचे{" "}
-                    {selectedVegetableName} दर
+                    {selectedMarketRow?.nameMr || selectedMarket} चे गेल्या ७
+                    दिवसांचे{" "}
+                    {selectedCommodityRow?.nameMr || selectedCommodity} दर
                   </CardTitle>
                   <CardDescription>
-                    {searchResults[0] &&
-                      new Date(searchResults[0].date).toLocaleDateString(
-                        "mr-IN",
-                        {
-                          day: "numeric",
-                          month: "long",
-                        }
-                      )}{" "}
+                    {rows[0] &&
+                      new Date(rows[0].date).toLocaleDateString("mr-IN", {
+                        day: "numeric",
+                        month: "long",
+                      })}{" "}
                     पासून {Math.abs(Number(getPercentageChange()))}%{" "}
-                    {getPercentageChange() > 0 ? (
-                      <span className="text-green-600 flex items-center">
+                    {Number(getPercentageChange()) > 0 ? (
+                      <span className="text-green-600 inline-flex items-center">
                         भाव वाढला <TrendingUp className="h-4 w-4 ml-1" />
                       </span>
                     ) : (
-                      <span className="text-red-600 flex items-center">
+                      <span className="text-red-600 inline-flex items-center">
                         भाव कमी झाला <TrendingDown className="h-4 w-4 ml-1" />
                       </span>
                     )}
@@ -286,12 +251,8 @@ export default function DailyMarketRates() {
                   <ChartContainer config={chartConfig}>
                     <LineChart
                       accessibilityLayer
-                      data={searchResults}
-                      margin={{
-                        top: 25,
-                        left: 12,
-                        right: 12,
-                      }}
+                      data={rows}
+                      margin={{ top: 25, left: 12, right: 12 }}
                     >
                       <CartesianGrid vertical={false} />
                       <XAxis
@@ -310,17 +271,13 @@ export default function DailyMarketRates() {
                         content={<ChartTooltipContent />}
                       />
                       <Line
-                        dataKey={`${selectedMarket}max`}
+                        dataKey="maxPrice"
                         type="monotone"
-                        stroke="var(--color-max)"
+                        stroke="var(--color-maxPrice)"
                         strokeWidth={2}
-                        dot={{
-                          fill: "var(--color-max)",
-                        }}
-                        activeDot={{
-                          r: 6,
-                        }}
-                        connectNulls={true}
+                        dot={{ fill: "var(--color-maxPrice)" }}
+                        activeDot={{ r: 6 }}
+                        connectNulls
                       >
                         <LabelList
                           position="top"
@@ -330,20 +287,20 @@ export default function DailyMarketRates() {
                         />
                       </Line>
                       <Line
-                        dataKey={`${selectedMarket}avg`}
+                        dataKey="modalPrice"
                         type="monotone"
-                        stroke="var(--color-avg)"
+                        stroke="var(--color-modalPrice)"
                         strokeWidth={2}
                         dot={false}
-                        connectNulls={true}
+                        connectNulls
                       />
                       <Line
-                        dataKey={`${selectedMarket}min`}
+                        dataKey="minPrice"
                         type="monotone"
-                        stroke="var(--color-min)"
+                        stroke="var(--color-minPrice)"
                         strokeWidth={2}
                         dot={false}
-                        connectNulls={true}
+                        connectNulls
                       />
                     </LineChart>
                   </ChartContainer>
@@ -352,6 +309,10 @@ export default function DailyMarketRates() {
               <Card className="w-full">
                 <CardHeader>
                   <CardTitle>दैनिक किंमती</CardTitle>
+                  <CardDescription>
+                    ₹ प्रति क्विंटल (१०० किलो) · किलोचा दर पाहण्यासाठी
+                    सरासरीला १०० ने भागा
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -364,28 +325,28 @@ export default function DailyMarketRates() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {sortedResults.map((result, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            {new Date(result.date).toLocaleDateString("en-IN")}
-                          </TableCell>
-                          <TableCell>
-                            {result[`${selectedMarket}min`] !== null
-                              ? `₹${result[`${selectedMarket}min`]}`
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {result[`${selectedMarket}max`] !== null
-                              ? `₹${result[`${selectedMarket}max`]}`
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {result[`${selectedMarket}avg`] !== null
-                              ? `₹${result[`${selectedMarket}avg`]}`
-                              : "N/A"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {sortedRows.map((r) => {
+                        const modalNum = Number(r.modalPrice) || 0;
+                        return (
+                          <TableRow key={r.date}>
+                            <TableCell>
+                              {new Date(r.date).toLocaleDateString("en-IN")}
+                            </TableCell>
+                            <TableCell>{formatAmount(r.minPrice)}</TableCell>
+                            <TableCell>{formatAmount(r.maxPrice)}</TableCell>
+                            <TableCell>
+                              <div className="font-medium">
+                                {formatAmount(r.modalPrice)}
+                              </div>
+                              {modalNum > 0 && (
+                                <div className="text-[10px] text-muted-foreground">
+                                  ≈ ₹{(modalNum / 100).toLocaleString("en-IN", { maximumFractionDigits: 0 })}/kg
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </CardContent>
