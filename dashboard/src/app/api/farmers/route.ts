@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server'
+import { unstable_cache } from 'next/cache'
 import { firestore, isFirebaseConfigured } from '@/lib/firebase'
 
-export async function GET() {
-  if (!isFirebaseConfigured()) {
-    return NextResponse.json(
-      { error: 'Firebase not configured. Copy .env.local.example to .env.local and fill in credentials.' },
-      { status: 503 }
-    )
-  }
+export const revalidate = 300
 
-  try {
+const getFarmersCached = unstable_cache(
+  async () => {
     const db = firestore()
-    const snap = await db.collection('farmers').get()
+    const snap = await db.collection('farmers').orderBy('lastSeenAt', 'desc').get()
 
     const farmers = await Promise.all(
       snap.docs.map(async (doc) => {
@@ -54,13 +50,32 @@ export async function GET() {
       })
     )
 
+    return farmers
+  },
+  ['farmers-api-v1'],
+  { revalidate: 300 }
+)
+
+export async function GET() {
+  if (!isFirebaseConfigured()) {
+    return NextResponse.json(
+      { error: 'Firebase not configured. Copy .env.local.example to .env.local and fill in credentials.' },
+      { status: 503 }
+    )
+  }
+
+  try {
+    const farmers = await getFarmersCached()
+
     return NextResponse.json({ farmers })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     // Surface a hint when the usual private-key paste mistake bubbles up.
     const hint = /DECODER routines|unsupported|PEM/i.test(message)
       ? ' — FIREBASE_PRIVATE_KEY looks malformed. Open /api/diag for diagnostics and re-paste per the deploy docs.'
-      : ''
+      : /UNAUTHENTICATED|invalid authentication credentials|access token/i.test(message)
+        ? ' — Firebase credential was rejected by Google. Open /api/diag and verify FIREBASE_PROJECT_ID + FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY come from the same service-account JSON.'
+        : ''
     return NextResponse.json({ error: message + hint }, { status: 500 })
   }
 }

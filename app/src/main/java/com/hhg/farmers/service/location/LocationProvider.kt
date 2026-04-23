@@ -13,8 +13,12 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val MAX_ACCEPTABLE_ACCURACY_M = 30f
+private const val MAX_FIX_WAIT_MS = 15_000L
+private const val MAX_CACHED_AGE_MS = 60_000L
+
 /**
- * Foreground-only, Uber-grade GPS via Fused Location Provider.
+ * Foreground-only location via Fused Location Provider.
  *
  * Intentionally *no* background tracking — we only request location while the user is actively
  * using the app. This keeps us out of Play Store's "background location" review bucket and
@@ -39,19 +43,22 @@ class LocationProvider @Inject constructor(
             PackageManager.PERMISSION_GRANTED
 
     /**
-     * Request a single high-accuracy fix. Returns null if permission missing or GPS failed within 10s.
-     * Caller is responsible for obtaining permission first (see [com.hhg.farmers.ui.components.LocationPermissionHandler]).
+     * Request a single fix suitable for activity tracking.
+     * - Accepts cached fixes up to 60s old (faster on weak devices/networks)
+     * - Waits up to 15s for a fresh reading
+     * - Accepts accuracy up to 30m
      */
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): LocationFix? {
         if (!hasPermission()) return null
         return runCatching {
             val req = CurrentLocationRequest.Builder()
-                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-                .setMaxUpdateAgeMillis(0)       // don't accept stale cached fix
-                .setDurationMillis(10_000)       // try up to 10s for a fix
+                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setMaxUpdateAgeMillis(MAX_CACHED_AGE_MS)
+                .setDurationMillis(MAX_FIX_WAIT_MS)
                 .build()
             val loc = client.getCurrentLocation(req, null).await() ?: return null
+            if (!loc.hasAccuracy() || loc.accuracy > MAX_ACCEPTABLE_ACCURACY_M) return null
             LocationFix(
                 latitude = loc.latitude,
                 longitude = loc.longitude,
