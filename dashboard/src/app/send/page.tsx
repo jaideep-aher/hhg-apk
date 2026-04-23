@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 /**
  * Admin UI for sending FCM push notifications.
@@ -38,6 +38,22 @@ export default function SendPage() {
   const [body, setBody]           = useState('')
   const [sending, setSending]     = useState(false)
   const [result, setResult]       = useState<SendResult | null>(null)
+
+  // Dashboard map "Send push" action deep-links here with ?farmerIds=12345,67890.
+  // Honor it by preselecting the targeted audience + filling the textarea.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const raw = params.get('farmerIds') ?? params.get('farmerId')
+    if (!raw) return
+    const ids = raw
+      .split(/[\s,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (ids.length === 0) return
+    setAudience('farmers')
+    setFarmerIds(ids.join('\n'))
+  }, [])
 
   const parsedFarmerIds = useMemo(
     () =>
