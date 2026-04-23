@@ -38,7 +38,7 @@ function dotColor(lastSeenAt: string | null): string {
   if (!lastSeenAt) return '#94a3b8'
   const ageMs = Date.now() - new Date(lastSeenAt).getTime()
   if (ageMs < 60 * 60 * 1000) return '#22c55e'
-  if (ageMs < 24 * 60 * 60 * 1000) return '#f97316'
+  if (ageMs < 3 * 24 * 60 * 60 * 1000) return '#f97316'
   return '#ef4444'
 }
 

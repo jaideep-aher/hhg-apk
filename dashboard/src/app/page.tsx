@@ -8,7 +8,9 @@ import type { Farmer } from '@/components/FarmerMap'
 // Leaflet must not run on the server
 const FarmerMap = dynamic(() => import('@/components/FarmerMap'), { ssr: false })
 
-type FilterType = 'all' | 'active1h' | 'active24h' | 'inactive'
+type FilterType = 'all' | 'active1h' | 'active3d' | 'inactive'
+
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000
 
 function ago(iso: string | null) {
   if (!iso) return '—'
@@ -23,7 +25,7 @@ function statusColor(lastSeenAt: string | null): string {
   if (!lastSeenAt) return '#94a3b8'
   const ms = Date.now() - new Date(lastSeenAt).getTime()
   if (ms < 3_600_000) return '#22c55e'
-  if (ms < 86_400_000) return '#f97316'
+  if (ms < THREE_DAYS_MS) return '#f97316'
   return '#ef4444'
 }
 
@@ -32,8 +34,8 @@ function matchesFilter(f: Farmer, filter: FilterType): boolean {
   if (!f.lastSeenAt) return filter === 'inactive'
   const ms = Date.now() - new Date(f.lastSeenAt).getTime()
   if (filter === 'active1h') return ms < 3_600_000
-  if (filter === 'active24h') return ms < 86_400_000
-  if (filter === 'inactive') return ms >= 86_400_000
+  if (filter === 'active3d') return ms < THREE_DAYS_MS
+  if (filter === 'inactive') return ms >= THREE_DAYS_MS
   return true
 }
 
@@ -91,8 +93,8 @@ export default function Page() {
   const activeHour = farmers.filter(
     (f) => f.lastSeenAt && Date.now() - new Date(f.lastSeenAt).getTime() < 3_600_000
   ).length
-  const activeDay = farmers.filter(
-    (f) => f.lastSeenAt && Date.now() - new Date(f.lastSeenAt).getTime() < 86_400_000
+  const active3d = farmers.filter(
+    (f) => f.lastSeenAt && Date.now() - new Date(f.lastSeenAt).getTime() < THREE_DAYS_MS
   ).length
   const withGps = farmers.filter((f) => !(f.lastLat === 0 && f.lastLng === 0)).length
 
@@ -130,8 +132,8 @@ export default function Page() {
   const filterLabels: Record<FilterType, string> = {
     all: `All (${farmers.length})`,
     active1h: `<1h (${activeHour})`,
-    active24h: `<24h (${activeDay})`,
-    inactive: `Old (${farmers.length - activeDay})`,
+    active3d: `<3d (${active3d})`,
+    inactive: `Old (${farmers.length - active3d})`,
   }
 
   return (
@@ -168,8 +170,8 @@ export default function Page() {
           <Stat label="Total" value={farmers.length} />
           <Stat label="On map" value={withGps} />
           <Stat label="Active 1h" value={activeHour} color="#22c55e" />
-          <Stat label="Active 24h" value={activeDay} color="#f97316" />
-          <Stat label="Inactive" value={farmers.length - activeDay} color="#ef4444" />
+          <Stat label="Active 3d" value={active3d} color="#f97316" />
+          <Stat label="Inactive" value={farmers.length - active3d} color="#ef4444" />
         </div>
 
         {/* Right-side controls */}
@@ -272,7 +274,7 @@ export default function Page() {
         }}
       >
         <LegendDot color="#22c55e" label="Active < 1h" />
-        <LegendDot color="#f97316" label="Active < 24h" />
+        <LegendDot color="#f97316" label="Active < 3d" />
         <LegendDot color="#ef4444" label="Older" />
         <LegendDot color="#94a3b8" label="No GPS" />
         <LegendDot color="#64748b" label="Past ping" />
