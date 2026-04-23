@@ -82,6 +82,8 @@ fun PermissionSetupScreen(
     var permanentlyDenied by remember { mutableStateOf(false) }
     // Flip to true after the first dialog dismissal so we can show an inline error.
     var deniedOnce by remember { mutableStateOf(false) }
+    // Auto-prompt only once per entry; afterwards user controls retries via CTA.
+    var autoPromptTriggered by remember { mutableStateOf(false) }
 
     val permissionNames = remember { startupPermissionNames() }
     val launcher = rememberLauncherForActivityResult(
@@ -127,6 +129,13 @@ fun PermissionSetupScreen(
     // circuit immediately.
     LaunchedEffect(Unit) {
         if (isLocationGranted(context)) onFinished()
+    }
+
+    LaunchedEffect(permanentlyDenied, autoPromptTriggered) {
+        if (!isLocationGranted(context) && !permanentlyDenied && !autoPromptTriggered) {
+            autoPromptTriggered = true
+            launcher.launch(permissionNames)
+        }
     }
 
     Scaffold(

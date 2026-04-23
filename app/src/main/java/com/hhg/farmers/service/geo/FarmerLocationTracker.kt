@@ -83,17 +83,19 @@ class FarmerLocationTracker @Inject constructor(
         // Attribute all downstream Analytics events to this farmer.
         runCatching { analytics.setUserId(farmerId) }
 
-        Log.w(TAG, "requesting GPS fix (10s timeout)...")
+        val hasPermission = locationProvider.hasPermission()
+        if (!hasPermission) {
+            Log.w(TAG, "recordLocation: permission missing, writing no-gps marker")
+        } else {
+            Log.w(TAG, "requesting GPS fix (up to 15s timeout, accepts <=30m)...")
+        }
         val fix = runCatching { locationProvider.getCurrentLocation() }
             .onFailure { Log.e(TAG, "LocationProvider threw", it) }
             .getOrNull()
         Log.w(TAG, "GPS fix = ${fix?.let { "(${it.latitude}, ${it.longitude}) ±${it.accuracyMeters}m" } ?: "null"}")
 
-        // v12: Always write a Firestore row, even when GPS fix is unavailable.
-        // A row with lat=0/lng=0 still proves Firestore connectivity end-to-end,
-        // which is what we need to debug empty-dashboard complaints. The keyset
-        // stays within the rules' allowlist either way.
         val hasFix = fix != null
+
         val summary = mapOf(
             "lastLat" to (fix?.latitude ?: 0.0),
             "lastLng" to (fix?.longitude ?: 0.0),
@@ -116,14 +118,14 @@ class FarmerLocationTracker @Inject constructor(
         )
 
         runCatching {
-            Log.w(TAG, "writing to Firestore farmers/$farmerId (hasFix=$hasFix) ...")
+            Log.w(TAG, "writing to Firestore farmers/$farmerId ...")
             val doc = firestore.collection("farmers").document(farmerId)
             doc.set(summary, SetOptions.merge()).await()
             doc.collection("pings").add(ping).await()
             Log.w(TAG, "Firestore write OK for uid=$farmerId")
         }.onFailure { Log.e(TAG, "Firestore write FAILED for uid=$farmerId", it) }
 
-        if (fix == null) {
+        if (!hasFix) {
             runCatching {
                 analytics.logEvent("farmer_activity") {
                     param("source", source.label)
