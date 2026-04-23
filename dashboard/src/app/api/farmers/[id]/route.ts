@@ -18,7 +18,7 @@ export async function GET(
       .doc(params.id)
       .collection('pings')
       .orderBy('at', 'desc')
-      .limit(30)
+      .limit(10)
       .get()
 
     const pings = pingsSnap.docs.map((p) => {

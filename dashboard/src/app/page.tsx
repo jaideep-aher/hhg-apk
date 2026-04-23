@@ -49,7 +49,7 @@ export default function Page() {
   const [filter, setFilter] = useState<FilterType>('all')
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [showPanel, setShowPanel] = useState(true)
-  const [autoRefresh, setAutoRefresh] = useState(true)
+  const [autoRefresh, setAutoRefresh] = useState(false)
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -81,7 +81,7 @@ export default function Page() {
   // Auto-refresh timer
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current)
-    if (autoRefresh) timerRef.current = setInterval(() => load(), 30_000)
+    if (autoRefresh) timerRef.current = setInterval(() => load(), 14_400_000)
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
@@ -207,7 +207,7 @@ export default function Page() {
 
           <Btn
             active={autoRefresh}
-            title={autoRefresh ? 'Auto-refresh ON (30 s) — click to pause' : 'Auto-refresh paused — click to resume'}
+            title={autoRefresh ? 'Auto-refresh ON (4 h) — click to pause' : 'Auto-refresh paused — click to resume'}
             onClick={() => setAutoRefresh((v) => !v)}
             activeColor="#166534"
           >
