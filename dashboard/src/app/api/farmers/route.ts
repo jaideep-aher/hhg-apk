@@ -2,58 +2,35 @@ import { NextResponse } from 'next/server'
 import { unstable_cache } from 'next/cache'
 import { firestore, isFirebaseConfigured } from '@/lib/firebase'
 
-export const revalidate = 300
-
+// Returns all farmer summary documents in one Firestore collection scan — no
+// subcollection queries so this scales to any number of farmers without timing out.
+// Pings / trail data are loaded on-demand via /api/farmers/[id].
+//
+// unstable_cache deduplicates concurrent Firestore reads on the server side.
+// Cache key bumped to v2 because the response shape changed (pings removed).
 const getFarmersCached = unstable_cache(
   async () => {
     const db = firestore()
     const snap = await db.collection('farmers').orderBy('lastSeenAt', 'desc').get()
 
-    const farmers = await Promise.all(
-      snap.docs.map(async (doc) => {
-        const data = doc.data()
-
-        // Fetch last 20 pings for this farmer
-        const pingsSnap = await db
-          .collection('farmers')
-          .doc(doc.id)
-          .collection('pings')
-          .orderBy('at', 'desc')
-          .limit(20)
-          .get()
-
-        const pings = pingsSnap.docs.map((p) => {
-          const pd = p.data()
-          return {
-            lat: pd.lat ?? 0,
-            lng: pd.lng ?? 0,
-            accuracyM: pd.accuracyM ?? -1,
-            at: pd.at?.toDate?.()?.toISOString() ?? null,
-            source: pd.source ?? '',
-            appVersion: pd.appVersion ?? '',
-          }
-        })
-
-        return {
-          id: doc.id,
-          lastLat: data.lastLat ?? 0,
-          lastLng: data.lastLng ?? 0,
-          lastAccuracyM: data.lastAccuracyM ?? -1,
-          lastSeenAt: data.lastSeenAt?.toDate?.()?.toISOString() ?? null,
-          lastSource: data.lastSource ?? '',
-          appVersion: data.appVersion ?? '',
-          deviceModel: data.deviceModel ?? '',
-          deviceManufacturer: data.deviceManufacturer ?? '',
-          androidSdk: data.androidSdk ?? 0,
-          pings,
-        }
-      })
-    )
-
-    return farmers
+    return snap.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        lastLat: data.lastLat ?? 0,
+        lastLng: data.lastLng ?? 0,
+        lastAccuracyM: data.lastAccuracyM ?? -1,
+        lastSeenAt: data.lastSeenAt?.toDate?.()?.toISOString() ?? null,
+        lastSource: data.lastSource ?? '',
+        appVersion: data.appVersion ?? '',
+        deviceModel: data.deviceModel ?? '',
+        deviceManufacturer: data.deviceManufacturer ?? '',
+        androidSdk: data.androidSdk ?? 0,
+      }
+    })
   },
-  ['farmers-api-v1'],
-  { revalidate: 300 }
+  ['farmers-api-v2'],
+  { revalidate: 60 }
 )
 
 export async function GET() {
@@ -67,10 +44,13 @@ export async function GET() {
   try {
     const farmers = await getFarmersCached()
 
-    return NextResponse.json({ farmers })
+    return NextResponse.json({
+      farmers,
+      fetchedAt: new Date().toISOString(),
+      total: farmers.length,
+    })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    // Surface a hint when the usual private-key paste mistake bubbles up.
     const hint = /DECODER routines|unsupported|PEM/i.test(message)
       ? ' — FIREBASE_PRIVATE_KEY looks malformed. Open /api/diag for diagnostics and re-paste per the deploy docs.'
       : /UNAUTHENTICATED|invalid authentication credentials|access token/i.test(message)

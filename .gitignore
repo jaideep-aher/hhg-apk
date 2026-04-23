@@ -20,3 +20,6 @@ keystore.properties
 node_modules/
 backend/.env
 .env
+
+# TypeScript build cache
+*.tsbuildinfo
