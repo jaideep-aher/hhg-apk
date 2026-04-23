@@ -30,7 +30,7 @@ const getFarmersCached = unstable_cache(
     })
   },
   ['farmers-api-v2'],
-  { revalidate: 60 }
+  { revalidate: 14400 }
 )
 
 export async function GET() {

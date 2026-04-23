@@ -25,8 +25,7 @@ private const val TAG = "GeoTracker"
  * data is high-churn write traffic, not the canonical farmer record.
  *
  * Collections:
- *   farmers/{farmerId}                     — latest summary, upserted each ping
- *   farmers/{farmerId}/pings/{autoId}      — append-only history for analytics
+ *   farmers/{farmerId}   — latest summary, upserted each ping (one doc per farmer)
  *
  * This class never throws. Callers invoke it fire-and-forget; a failed write
  * should never block login or impact the farmer's core app experience.
@@ -108,20 +107,11 @@ class FarmerLocationTracker @Inject constructor(
             "deviceManufacturer" to Build.MANUFACTURER,
             "androidSdk" to Build.VERSION.SDK_INT.toLong()
         )
-        val ping = mapOf(
-            "lat" to (fix?.latitude ?: 0.0),
-            "lng" to (fix?.longitude ?: 0.0),
-            "accuracyM" to (fix?.accuracyMeters?.toDouble() ?: -1.0),
-            "at" to FieldValue.serverTimestamp(),
-            "source" to if (hasFix) source.label else "${source.label}_nogps",
-            "appVersion" to BuildConfig.VERSION_NAME
-        )
 
         runCatching {
             Log.w(TAG, "writing to Firestore farmers/$farmerId ...")
-            val doc = firestore.collection("farmers").document(farmerId)
-            doc.set(summary, SetOptions.merge()).await()
-            doc.collection("pings").add(ping).await()
+            firestore.collection("farmers").document(farmerId)
+                .set(summary, SetOptions.merge()).await()
             Log.w(TAG, "Firestore write OK for uid=$farmerId")
         }.onFailure { Log.e(TAG, "Firestore write FAILED for uid=$farmerId", it) }
 
