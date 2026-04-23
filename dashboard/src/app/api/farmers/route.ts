@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { firestore, isFirebaseConfigured } from '@/lib/firebase'
 
+// Returns all farmer summary documents in one Firestore collection scan — no
+// subcollection queries so this scales to any number of farmers without timing out.
+// Pings / trail data are loaded on-demand via /api/farmers/[id].
 export async function GET() {
   if (!isFirebaseConfigured()) {
     return NextResponse.json(
@@ -13,51 +16,29 @@ export async function GET() {
     const db = firestore()
     const snap = await db.collection('farmers').get()
 
-    const farmers = await Promise.all(
-      snap.docs.map(async (doc) => {
-        const data = doc.data()
+    const farmers = snap.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        lastLat: data.lastLat ?? 0,
+        lastLng: data.lastLng ?? 0,
+        lastAccuracyM: data.lastAccuracyM ?? -1,
+        lastSeenAt: data.lastSeenAt?.toDate?.()?.toISOString() ?? null,
+        lastSource: data.lastSource ?? '',
+        appVersion: data.appVersion ?? '',
+        deviceModel: data.deviceModel ?? '',
+        deviceManufacturer: data.deviceManufacturer ?? '',
+        androidSdk: data.androidSdk ?? 0,
+      }
+    })
 
-        // Fetch last 20 pings for this farmer
-        const pingsSnap = await db
-          .collection('farmers')
-          .doc(doc.id)
-          .collection('pings')
-          .orderBy('at', 'desc')
-          .limit(20)
-          .get()
-
-        const pings = pingsSnap.docs.map((p) => {
-          const pd = p.data()
-          return {
-            lat: pd.lat ?? 0,
-            lng: pd.lng ?? 0,
-            accuracyM: pd.accuracyM ?? -1,
-            at: pd.at?.toDate?.()?.toISOString() ?? null,
-            source: pd.source ?? '',
-            appVersion: pd.appVersion ?? '',
-          }
-        })
-
-        return {
-          id: doc.id,
-          lastLat: data.lastLat ?? 0,
-          lastLng: data.lastLng ?? 0,
-          lastAccuracyM: data.lastAccuracyM ?? -1,
-          lastSeenAt: data.lastSeenAt?.toDate?.()?.toISOString() ?? null,
-          lastSource: data.lastSource ?? '',
-          appVersion: data.appVersion ?? '',
-          deviceModel: data.deviceModel ?? '',
-          deviceManufacturer: data.deviceManufacturer ?? '',
-          androidSdk: data.androidSdk ?? 0,
-          pings,
-        }
-      })
-    )
-
-    return NextResponse.json({ farmers })
+    return NextResponse.json({
+      farmers,
+      fetchedAt: new Date().toISOString(),
+      total: farmers.length,
+    })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    // Surface a hint when the usual private-key paste mistake bubbles up.
     const hint = /DECODER routines|unsupported|PEM/i.test(message)
       ? ' — FIREBASE_PRIVATE_KEY looks malformed. Open /api/diag for diagnostics and re-paste per the deploy docs.'
       : ''
