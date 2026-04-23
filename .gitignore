@@ -20,3 +20,4 @@ keystore.properties
 node_modules/
 backend/.env
 .env
+tsconfig.tsbuildinfo
