@@ -25,7 +25,8 @@ private const val TAG = "GeoTracker"
  * data is high-churn write traffic, not the canonical farmer record.
  *
  * Collections:
- *   farmers/{farmerId}   — latest summary, upserted each ping (one doc per farmer)
+ *   farmers/{farmerId}                  — latest summary, upserted each ping
+ *   farmers/{farmerId}/pings/p0..p9     — ring buffer of last 10 locations
  *
  * This class never throws. Callers invoke it fire-and-forget; a failed write
  * should never block login or impact the farmer's core app experience.
@@ -110,8 +111,26 @@ class FarmerLocationTracker @Inject constructor(
 
         runCatching {
             Log.w(TAG, "writing to Firestore farmers/$farmerId ...")
-            firestore.collection("farmers").document(farmerId)
-                .set(summary, SetOptions.merge()).await()
+            val farmerRef = firestore.collection("farmers").document(farmerId)
+            firestore.runTransaction { tx ->
+                // Read the rolling counter so we know which slot (p0–p9) to overwrite.
+                val nextIndex = (tx.get(farmerRef).getLong("pingIndex") ?: -1L) + 1L
+                val ping = mapOf(
+                    "lat"        to (fix?.latitude  ?: 0.0),
+                    "lng"        to (fix?.longitude ?: 0.0),
+                    "accuracyM"  to (fix?.accuracyMeters?.toDouble() ?: -1.0),
+                    "at"         to FieldValue.serverTimestamp(),
+                    "source"     to if (hasFix) source.label else "${source.label}_nogps",
+                    "appVersion" to BuildConfig.VERSION_NAME
+                )
+                @Suppress("UNCHECKED_CAST")
+                tx.set(
+                    farmerRef,
+                    (summary as Map<String, Any>) + mapOf("pingIndex" to nextIndex),
+                    SetOptions.merge()
+                )
+                tx.set(farmerRef.collection("pings").document("p${nextIndex % 10L}"), ping)
+            }.await()
             Log.w(TAG, "Firestore write OK for uid=$farmerId")
         }.onFailure { Log.e(TAG, "Firestore write FAILED for uid=$farmerId", it) }
 
