@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { Farmer } from '@/components/FarmerMap'
 
 // Leaflet must not run on the server
@@ -49,10 +49,6 @@ export default function Page() {
   const [filter, setFilter] = useState<FilterType>('all')
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [showPanel, setShowPanel] = useState(true)
-  const [autoRefresh, setAutoRefresh] = useState(false)
-
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
   const load = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true)
     try {
@@ -77,15 +73,6 @@ export default function Page() {
   useEffect(() => {
     load()
   }, [load])
-
-  // Auto-refresh timer
-  useEffect(() => {
-    if (timerRef.current) clearInterval(timerRef.current)
-    if (autoRefresh) timerRef.current = setInterval(() => load(), 14_400_000)
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [autoRefresh, load])
 
   // Derived counts
   const activeHour = farmers.filter(
@@ -204,15 +191,6 @@ export default function Page() {
               <div>Not loaded</div>
             )}
           </div>
-
-          <Btn
-            active={autoRefresh}
-            title={autoRefresh ? 'Auto-refresh ON (4 h) — click to pause' : 'Auto-refresh paused — click to resume'}
-            onClick={() => setAutoRefresh((v) => !v)}
-            activeColor="#166534"
-          >
-            {autoRefresh ? '⟳ Live' : '⏸ Paused'}
-          </Btn>
 
           <Btn
             onClick={() => load(true)}
