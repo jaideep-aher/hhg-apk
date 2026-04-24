@@ -9,8 +9,10 @@ import {
   Popup,
   Polyline,
   useMap,
+  useMapEvents,
 } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
+import type { VehicleRoute, GapCluster } from '@/lib/geo'
 
 export type Ping = {
   lat: number
@@ -53,7 +55,6 @@ function sourceLabel(s: string) {
   return s || '—'
 }
 
-// Flies the map to a farmer when selectedFarmerId changes
 function MapController({
   selectedFarmerId,
   farmers,
@@ -72,39 +73,96 @@ function MapController({
   return null
 }
 
+// Handles map clicks in draw mode and sets crosshair cursor
+function DrawHandler({
+  active,
+  onMapClick,
+}: {
+  active: boolean
+  onMapClick?: (lat: number, lng: number) => void
+}) {
+  const map = useMap()
+
+  useEffect(() => {
+    const container = map.getContainer()
+    container.style.cursor = active ? 'crosshair' : ''
+    return () => {
+      container.style.cursor = ''
+    }
+  }, [active, map])
+
+  useMapEvents({
+    click(e) {
+      if (active && onMapClick) {
+        onMapClick(e.latlng.lat, e.latlng.lng)
+      }
+    },
+  })
+
+  return null
+}
+
+const ROUTE_COLORS = [
+  '#3b82f6', '#22c55e', '#f97316', '#a855f7',
+  '#ec4899', '#14b8a6', '#eab308', '#ef4444',
+]
+
 export default function FarmerMap({
   farmers,
   selectedFarmerId,
   onSelectFarmer,
   showHeatmap,
+  // Routes
+  routes = [],
+  showRoutes = false,
+  drawMode = false,
+  drawingWaypoints = [],
+  onMapClick,
+  // Gap analysis
+  showGapAnalysis = false,
+  gapCoveredIds,
+  gapUncoveredIds,
+  gapClusters = [],
+  coverageRadiusKm = 5,
 }: {
   farmers: Farmer[]
   selectedFarmerId: string | null
   onSelectFarmer: (id: string | null) => void
   showHeatmap: boolean
+  routes?: VehicleRoute[]
+  showRoutes?: boolean
+  drawMode?: boolean
+  drawingWaypoints?: Array<{ lat: number; lng: number }>
+  onMapClick?: (lat: number, lng: number) => void
+  showGapAnalysis?: boolean
+  gapCoveredIds?: Set<string>
+  gapUncoveredIds?: Set<string>
+  gapClusters?: GapCluster[]
+  coverageRadiusKm?: number
 }) {
-  // Required for Leaflet SSR
   useEffect(() => {}, [])
 
   const [pingsCache, setPingsCache] = useState<Record<string, Ping[]>>({})
   const [loadingPings, setLoadingPings] = useState<string | null>(null)
 
-  const loadPings = useCallback(async (farmerId: string) => {
-    if (pingsCache[farmerId] !== undefined) return
-    setLoadingPings(farmerId)
-    try {
-      const res = await fetch(`/api/farmers/${encodeURIComponent(farmerId)}`)
-      const data = await res.json()
-      if (Array.isArray(data.pings)) {
-        setPingsCache((prev) => ({ ...prev, [farmerId]: data.pings }))
+  const loadPings = useCallback(
+    async (farmerId: string) => {
+      if (pingsCache[farmerId] !== undefined) return
+      setLoadingPings(farmerId)
+      try {
+        const res = await fetch(`/api/farmers/${encodeURIComponent(farmerId)}`)
+        const data = await res.json()
+        if (Array.isArray(data.pings)) {
+          setPingsCache((prev) => ({ ...prev, [farmerId]: data.pings }))
+        }
+      } catch {
+        setPingsCache((prev) => ({ ...prev, [farmerId]: [] }))
+      } finally {
+        setLoadingPings(null)
       }
-    } catch {
-      // silently mark as loaded with empty array so we don't retry on every click
-      setPingsCache((prev) => ({ ...prev, [farmerId]: [] }))
-    } finally {
-      setLoadingPings(null)
-    }
-  }, [pingsCache])
+    },
+    [pingsCache]
+  )
 
   const mapped = farmers.filter((f) => !(f.lastLat === 0 && f.lastLng === 0))
 
@@ -116,6 +174,10 @@ export default function FarmerMap({
       .reverse()
       .map((p) => [p.lat, p.lng] as [number, number])
   }
+
+  const drawingPositions: [number, number][] = drawingWaypoints.map(
+    (w) => [w.lat, w.lng] as [number, number]
+  )
 
   return (
     <MapContainer
@@ -130,8 +192,192 @@ export default function FarmerMap({
       />
 
       <MapController selectedFarmerId={selectedFarmerId} farmers={farmers} />
+      <DrawHandler active={drawMode} onMapClick={onMapClick} />
 
-      {/* Heatmap: two stacked circles per farmer — outer glow + inner core */}
+      {/* ── Vehicle routes ── */}
+      {showRoutes &&
+        routes.map((route) => {
+          const positions: [number, number][] = route.waypoints.map(
+            (w) => [w.lat, w.lng] as [number, number]
+          )
+          if (positions.length < 2) return null
+          return (
+            <Fragment key={`route-${route.id}`}>
+              {/* Glow/halo under the route line */}
+              <Polyline
+                positions={positions}
+                pathOptions={{
+                  color: route.color,
+                  weight: 18,
+                  opacity: 0.12,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+              {/* Main route line */}
+              <Polyline
+                positions={positions}
+                pathOptions={{
+                  color: route.color,
+                  weight: 4,
+                  opacity: 0.85,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              >
+                <Popup minWidth={160}>
+                  <div style={{ lineHeight: 1.8, fontSize: 13 }}>
+                    <strong style={{ fontSize: 14 }}>{route.name}</strong>
+                    {route.vehicle && (
+                      <>
+                        <br />
+                        <span style={{ color: '#555' }}>Vehicle:</span> {route.vehicle}
+                      </>
+                    )}
+                    <br />
+                    <span style={{ color: '#555' }}>Stops:</span> {route.waypoints.length}
+                  </div>
+                </Popup>
+              </Polyline>
+              {/* Waypoint dots */}
+              {route.waypoints.map((wp, i) => (
+                <CircleMarker
+                  key={`${route.id}-wp-${i}`}
+                  center={[wp.lat, wp.lng]}
+                  radius={i === 0 || i === route.waypoints.length - 1 ? 6 : 4}
+                  pathOptions={{
+                    color: '#fff',
+                    weight: 2,
+                    fillColor: route.color,
+                    fillOpacity: 1,
+                  }}
+                >
+                  <Popup>
+                    <span style={{ fontSize: 12 }}>
+                      {route.name} — stop {i + 1}/{route.waypoints.length}
+                    </span>
+                  </Popup>
+                </CircleMarker>
+              ))}
+            </Fragment>
+          )
+        })}
+
+      {/* ── Route being drawn ── */}
+      {drawMode && drawingPositions.length > 0 && (
+        <Fragment>
+          {drawingPositions.length > 1 && (
+            <Polyline
+              positions={drawingPositions}
+              pathOptions={{
+                color: '#60a5fa',
+                weight: 3,
+                opacity: 0.9,
+                dashArray: '8 5',
+              }}
+            />
+          )}
+          {drawingWaypoints.map((wp, i) => (
+            <CircleMarker
+              key={`drawing-${i}`}
+              center={[wp.lat, wp.lng]}
+              radius={i === 0 ? 7 : 5}
+              pathOptions={{
+                color: '#fff',
+                weight: 2,
+                fillColor: '#3b82f6',
+                fillOpacity: 1,
+              }}
+            >
+              <Popup>
+                <span style={{ fontSize: 12 }}>
+                  Stop {i + 1} — {wp.lat.toFixed(4)}, {wp.lng.toFixed(4)}
+                </span>
+              </Popup>
+            </CircleMarker>
+          ))}
+        </Fragment>
+      )}
+
+      {/* ── Gap analysis: coverage corridors along routes ── */}
+      {showGapAnalysis &&
+        showRoutes &&
+        routes.map((route) =>
+          route.waypoints.map((wp, i) => (
+            <Circle
+              key={`cov-${route.id}-${i}`}
+              center={[wp.lat, wp.lng]}
+              radius={coverageRadiusKm * 1000}
+              pathOptions={{
+                color: route.color,
+                weight: 0,
+                fillColor: route.color,
+                fillOpacity: 0.06,
+              }}
+            />
+          ))
+        )}
+
+      {/* ── Gap analysis: cluster suggestions ── */}
+      {showGapAnalysis &&
+        gapClusters.map((cluster, i) => (
+          <Fragment key={`cluster-${i}`}>
+            <Circle
+              center={[cluster.centroidLat, cluster.centroidLng]}
+              radius={8000}
+              pathOptions={{
+                color: '#a855f7',
+                weight: 2,
+                opacity: 0.7,
+                fillColor: '#a855f7',
+                fillOpacity: 0.12,
+                dashArray: '6 4',
+              }}
+            >
+              <Popup minWidth={180}>
+                <div style={{ lineHeight: 1.8, fontSize: 13 }}>
+                  <strong style={{ color: '#7c3aed' }}>
+                    Suggested stop #{i + 1}
+                  </strong>
+                  <br />
+                  <span style={{ color: '#555' }}>Farmers here:</span>{' '}
+                  {cluster.farmerIds.length}
+                  <br />
+                  <span style={{ color: '#555' }}>Distance to nearest route:</span>{' '}
+                  {cluster.nearestRouteDistKm > 0
+                    ? `${cluster.nearestRouteDistKm} km`
+                    : 'No route yet'}
+                </div>
+              </Popup>
+            </Circle>
+            {/* Cluster centre marker */}
+            <CircleMarker
+              center={[cluster.centroidLat, cluster.centroidLng]}
+              radius={10}
+              pathOptions={{
+                color: '#fff',
+                weight: 2,
+                fillColor: '#a855f7',
+                fillOpacity: 0.9,
+              }}
+            >
+              <Popup minWidth={180}>
+                <div style={{ lineHeight: 1.8, fontSize: 13 }}>
+                  <strong style={{ color: '#7c3aed' }}>
+                    Cluster #{i + 1}
+                  </strong>
+                  <br />
+                  {cluster.farmerIds.length} farmers uncovered
+                  <br />
+                  {cluster.nearestRouteDistKm > 0 &&
+                    `~${cluster.nearestRouteDistKm} km from nearest route`}
+                </div>
+              </Popup>
+            </CircleMarker>
+          </Fragment>
+        ))}
+
+      {/* ── Heatmap ── */}
       {showHeatmap &&
         mapped.map((farmer) => (
           <Fragment key={`heat-${farmer.id}`}>
@@ -143,29 +389,38 @@ export default function FarmerMap({
             <Circle
               center={[farmer.lastLat, farmer.lastLng]}
               radius={6000}
-              pathOptions={{ weight: 0, fillColor: '#ef4444', fillOpacity: 0.10 }}
+              pathOptions={{ weight: 0, fillColor: '#ef4444', fillOpacity: 0.1 }}
             />
           </Fragment>
         ))}
 
-      {/* Farmer dots + trail */}
+      {/* ── Farmer dots + trails ── */}
       {mapped.map((farmer) => {
-        const color = dotColor(farmer.lastSeenAt)
+        const isUncovered = showGapAnalysis && gapUncoveredIds?.has(farmer.id)
+        const isCovered = showGapAnalysis && gapCoveredIds?.has(farmer.id)
+        const baseColor = dotColor(farmer.lastSeenAt)
+        // When gap analysis is on, colour-code coverage status
+        const fillColor = showGapAnalysis
+          ? isUncovered
+            ? '#facc15'
+            : isCovered
+            ? '#22c55e'
+            : baseColor
+          : baseColor
+
         const isSelected = farmer.id === selectedFarmerId
         const pings = pingsCache[farmer.id] ?? []
         const t = trail(farmer.id)
 
         return (
           <Fragment key={farmer.id}>
-            {/* Trail polyline */}
             {t.length > 1 && (
               <Polyline
                 positions={t}
-                pathOptions={{ color, weight: 2, opacity: 0.5 }}
+                pathOptions={{ color: fillColor, weight: 2, opacity: 0.5 }}
               />
             )}
 
-            {/* Historical ping dots */}
             {pings
               .filter((p) => !(p.lat === 0 && p.lng === 0))
               .map((p, i) => (
@@ -190,7 +445,6 @@ export default function FarmerMap({
                 </CircleMarker>
               ))}
 
-            {/* Selection ring */}
             {isSelected && (
               <CircleMarker
                 center={[farmer.lastLat, farmer.lastLng]}
@@ -205,37 +459,57 @@ export default function FarmerMap({
               />
             )}
 
-            {/* Current location dot */}
             <CircleMarker
               center={[farmer.lastLat, farmer.lastLng]}
               radius={isSelected ? 13 : 9}
               pathOptions={{
                 color: '#fff',
                 weight: isSelected ? 3 : 2,
-                fillColor: color,
+                fillColor: fillColor,
                 fillOpacity: 0.95,
               }}
               eventHandlers={{
-                click: () => {
-                  const newId = isSelected ? null : farmer.id
-                  onSelectFarmer(newId)
-                  if (newId) loadPings(newId)
+                click: (e) => {
+                  if (!drawMode) {
+                    // @ts-ignore
+                    e.originalEvent?.stopPropagation?.()
+                    const newId = isSelected ? null : farmer.id
+                    onSelectFarmer(newId)
+                    if (newId) loadPings(newId)
+                  }
                 },
               }}
             >
               <Popup minWidth={210}>
                 <div style={{ lineHeight: 1.7, fontSize: 13 }}>
                   <strong style={{ fontSize: 14 }}>Farmer {farmer.id}</strong>
+                  {showGapAnalysis && (
+                    <>
+                      <br />
+                      <span
+                        style={{
+                          color: isUncovered ? '#ca8a04' : '#16a34a',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {isUncovered ? '⚠ Not on any route' : '✓ Covered by route'}
+                      </span>
+                    </>
+                  )}
                   <br />
                   <span style={{ color: '#555' }}>Last seen:</span> {fmt(farmer.lastSeenAt)}
                   <br />
-                  <span style={{ color: '#555' }}>Source:</span> {sourceLabel(farmer.lastSource)}
+                  <span style={{ color: '#555' }}>Source:</span>{' '}
+                  {sourceLabel(farmer.lastSource)}
                   <br />
-                  <span style={{ color: '#555' }}>Device:</span> {farmer.deviceManufacturer} {farmer.deviceModel}
+                  <span style={{ color: '#555' }}>Device:</span>{' '}
+                  {farmer.deviceManufacturer} {farmer.deviceModel}
                   <br />
-                  <span style={{ color: '#555' }}>App:</span> v{farmer.appVersion} (SDK {farmer.androidSdk})
+                  <span style={{ color: '#555' }}>App:</span> v{farmer.appVersion} (SDK{' '}
+                  {farmer.androidSdk})
                   <br />
-                  <span style={{ color: '#555' }}>Accuracy:</span> ±{Math.round(farmer.lastAccuracyM)}m
+                  <span style={{ color: '#555' }}>Accuracy:</span> ±
+                  {Math.round(farmer.lastAccuracyM)}m
                   <br />
                   {loadingPings === farmer.id && (
                     <span style={{ color: '#f97316' }}>Loading trail…</span>
@@ -252,3 +526,5 @@ export default function FarmerMap({
     </MapContainer>
   )
 }
+
+export { ROUTE_COLORS }
