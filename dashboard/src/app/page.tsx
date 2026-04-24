@@ -4,6 +4,9 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useEffect, useState, useCallback } from 'react'
 import type { Farmer } from '@/components/FarmerMap'
+import { ROUTE_COLORS } from '@/components/FarmerMap'
+import type { VehicleRoute, GapResult } from '@/lib/geo'
+import { runGapAnalysis } from '@/lib/geo'
 
 // Leaflet must not run on the server
 const FarmerMap = dynamic(() => import('@/components/FarmerMap'), { ssr: false })
@@ -49,6 +52,23 @@ export default function Page() {
   const [filter, setFilter] = useState<FilterType>('all')
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [showPanel, setShowPanel] = useState(true)
+
+  // Routes
+  const [routes, setRoutes] = useState<VehicleRoute[]>([])
+  const [showRoutes, setShowRoutes] = useState(false)
+  const [routesLoading, setRoutesLoading] = useState(false)
+  const [showRoutesPanel, setShowRoutesPanel] = useState(false)
+  // Draw mode
+  const [drawMode, setDrawMode] = useState(false)
+  const [drawingWaypoints, setDrawingWaypoints] = useState<Array<{ lat: number; lng: number }>>([])
+  const [newRouteName, setNewRouteName] = useState('')
+  const [newRouteColor, setNewRouteColor] = useState(ROUTE_COLORS[0])
+  const [newRouteVehicle, setNewRouteVehicle] = useState('')
+  const [savingRoute, setSavingRoute] = useState(false)
+  // Gap analysis
+  const [gapResult, setGapResult] = useState<GapResult | null>(null)
+  const [showGapAnalysis, setShowGapAnalysis] = useState(false)
+  const [coverageRadius, setCoverageRadius] = useState(5)
   const load = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true)
     try {
@@ -69,10 +89,72 @@ export default function Page() {
     }
   }, [])
 
+  const loadRoutes = useCallback(async () => {
+    setRoutesLoading(true)
+    try {
+      const res = await fetch('/api/routes')
+      const data = await res.json()
+      setRoutes(data.routes ?? [])
+    } catch {
+      // ignore
+    } finally {
+      setRoutesLoading(false)
+    }
+  }, [])
+
+  const saveRoute = useCallback(async () => {
+    if (drawingWaypoints.length < 2) return
+    setSavingRoute(true)
+    try {
+      const res = await fetch('/api/routes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newRouteName.trim() || `Route ${routes.length + 1}`,
+          color: newRouteColor,
+          vehicle: newRouteVehicle.trim(),
+          waypoints: drawingWaypoints,
+        }),
+      })
+      const saved = await res.json()
+      if (!saved.error) {
+        setRoutes((prev) => [saved, ...prev])
+        setShowRoutes(true)
+      }
+    } finally {
+      setSavingRoute(false)
+      setDrawMode(false)
+      setDrawingWaypoints([])
+      setNewRouteName('')
+      setNewRouteVehicle('')
+    }
+  }, [drawingWaypoints, newRouteName, newRouteColor, newRouteVehicle, routes.length])
+
+  const deleteRoute = useCallback(async (id: string) => {
+    await fetch(`/api/routes/${id}`, { method: 'DELETE' })
+    setRoutes((prev) => prev.filter((r) => r.id !== id))
+    if (gapResult) setGapResult(null)
+  }, [gapResult])
+
+  const handleMapClick = useCallback((lat: number, lng: number) => {
+    setDrawingWaypoints((prev) => [...prev, { lat, lng }])
+  }, [])
+
+  const runGap = useCallback(() => {
+    const result = runGapAnalysis(farmers, routes, coverageRadius)
+    setGapResult(result)
+    setShowGapAnalysis(true)
+    setShowRoutes(true)
+  }, [farmers, routes, coverageRadius])
+
   // Initial load
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    loadRoutes()
+  }, [loadRoutes])
 
   // Derived counts
   const activeHour = farmers.filter(
@@ -210,6 +292,44 @@ export default function Page() {
           </Btn>
 
           <Btn
+            active={showRoutes}
+            activeColor="#1d4ed8"
+            title="Toggle vehicle route overlays"
+            onClick={() => {
+              setShowRoutes((v) => !v)
+              setShowRoutesPanel(true)
+            }}
+          >
+            🚛 Routes {routes.length > 0 && `(${routes.length})`}
+          </Btn>
+
+          <Btn
+            active={showGapAnalysis}
+            activeColor="#6b21a8"
+            title="Find uncovered areas — run gap analysis"
+            onClick={() => {
+              if (routes.length === 0) {
+                setShowRoutesPanel(true)
+                setShowPanel(true)
+                return
+              }
+              if (showGapAnalysis) {
+                setShowGapAnalysis(false)
+                setGapResult(null)
+              } else {
+                runGap()
+              }
+            }}
+          >
+            🔍 Gap Analysis
+            {gapResult && (
+              <span style={{ marginLeft: 4, color: '#facc15' }}>
+                {gapResult.uncoveredIds.size}↑
+              </span>
+            )}
+          </Btn>
+
+          <Btn
             title="Toggle farmer list panel"
             onClick={() => setShowPanel((v) => !v)}
           >
@@ -254,9 +374,24 @@ export default function Page() {
         <LegendDot color="#ef4444" label="Older" />
         <LegendDot color="#94a3b8" label="No GPS" />
         <LegendDot color="#64748b" label="Past ping" />
-        <span style={{ color: '#475569', marginLeft: 4 }}>
-          Click dot → select &amp; load trail · Search by ID in the panel
-        </span>
+        {showGapAnalysis && (
+          <>
+            <span style={{ width: 1, background: '#334155', alignSelf: 'stretch' }} />
+            <LegendDot color="#facc15" label="Uncovered farmer" />
+            <LegendDot color="#a855f7" label="Suggested stop" />
+            <LegendDot color="#22c55e" label="Covered farmer" />
+          </>
+        )}
+        {drawMode && (
+          <span style={{ color: '#60a5fa', fontWeight: 600, marginLeft: 4 }}>
+            ✏ Draw mode — click map to add stops · {drawingWaypoints.length} stops added
+          </span>
+        )}
+        {!drawMode && (
+          <span style={{ color: '#475569', marginLeft: 4 }}>
+            Click dot → select &amp; load trail · Search by ID in the panel
+          </span>
+        )}
       </div>
 
       {/* ── Body ── */}
@@ -331,7 +466,7 @@ export default function Page() {
             </div>
 
             {/* Farmer list */}
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{ flex: 1, overflowY: 'auto', minHeight: 80 }}>
               {panelList.map((f) => (
                 <FarmerRow
                   key={f.id}
@@ -341,27 +476,182 @@ export default function Page() {
                 />
               ))}
               {panelList.length === 0 && !loading && (
-                <div
-                  style={{
-                    padding: 24,
-                    textAlign: 'center',
-                    color: '#475569',
-                    fontSize: 13,
-                  }}
-                >
+                <div style={{ padding: 24, textAlign: 'center', color: '#475569', fontSize: 13 }}>
                   No farmers match
                 </div>
               )}
               {loading && (
-                <div
-                  style={{
-                    padding: 24,
-                    textAlign: 'center',
-                    color: '#475569',
-                    fontSize: 13,
-                  }}
-                >
+                <div style={{ padding: 24, textAlign: 'center', color: '#475569', fontSize: 13 }}>
                   Loading…
+                </div>
+              )}
+            </div>
+
+            {/* ── Routes section ── */}
+            <div style={{ borderTop: '1px solid #334155', flexShrink: 0 }}>
+              <button
+                onClick={() => setShowRoutesPanel((v) => !v)}
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#f1f5f9',
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                <span>🚛 Routes {routesLoading ? '…' : `(${routes.length})`}</span>
+                <span style={{ color: '#64748b' }}>{showRoutesPanel ? '▲' : '▼'}</span>
+              </button>
+
+              {showRoutesPanel && (
+                <div style={{ maxHeight: 220, overflowY: 'auto', paddingBottom: 4 }}>
+                  {routes.length === 0 && !routesLoading && (
+                    <div style={{ padding: '4px 12px 8px', color: '#475569', fontSize: 11 }}>
+                      No routes yet. Draw one on the map.
+                    </div>
+                  )}
+                  {routes.map((route) => (
+                    <div
+                      key={route.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '5px 12px',
+                        borderBottom: '1px solid #1a2540',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          background: route.color,
+                          flexShrink: 0,
+                          display: 'inline-block',
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: '#f1f5f9',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {route.name}
+                        </div>
+                        <div style={{ fontSize: 10, color: '#64748b' }}>
+                          {route.waypoints.length} stops
+                          {route.vehicle ? ` · ${route.vehicle}` : ''}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => deleteRoute(route.id)}
+                        title="Remove route"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          padding: '0 2px',
+                          flexShrink: 0,
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Draw new route button */}
+                  {!drawMode && (
+                    <div style={{ padding: '8px 12px 4px' }}>
+                      <button
+                        onClick={() => {
+                          setDrawMode(true)
+                          setDrawingWaypoints([])
+                          setNewRouteName('')
+                          setNewRouteVehicle('')
+                          setNewRouteColor(ROUTE_COLORS[routes.length % ROUTE_COLORS.length])
+                        }}
+                        style={{
+                          width: '100%',
+                          background: '#1d4ed8',
+                          border: 'none',
+                          color: '#fff',
+                          borderRadius: 6,
+                          padding: '6px 0',
+                          cursor: 'pointer',
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                      >
+                        ＋ Draw New Route
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Gap analysis controls */}
+                  {routes.length > 0 && (
+                    <div style={{ padding: '4px 12px 8px', borderTop: '1px solid #1a2540' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          marginBottom: 6,
+                          marginTop: 4,
+                        }}
+                      >
+                        <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>
+                          Coverage radius:
+                        </span>
+                        <select
+                          value={coverageRadius}
+                          onChange={(e) => setCoverageRadius(Number(e.target.value))}
+                          style={{
+                            flex: 1,
+                            background: '#0f172a',
+                            border: '1px solid #334155',
+                            color: '#f1f5f9',
+                            borderRadius: 4,
+                            padding: '2px 4px',
+                            fontSize: 11,
+                          }}
+                        >
+                          {[1, 3, 5, 10, 15, 20].map((r) => (
+                            <option key={r} value={r}>{r} km</option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        onClick={runGap}
+                        style={{
+                          width: '100%',
+                          background: '#6b21a8',
+                          border: 'none',
+                          color: '#fff',
+                          borderRadius: 6,
+                          padding: '6px 0',
+                          cursor: 'pointer',
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                      >
+                        🔍 Run Gap Analysis
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -410,7 +700,208 @@ export default function Page() {
               selectedFarmerId={selectedId}
               onSelectFarmer={setSelectedId}
               showHeatmap={showHeatmap}
+              routes={routes}
+              showRoutes={showRoutes}
+              drawMode={drawMode}
+              drawingWaypoints={drawingWaypoints}
+              onMapClick={handleMapClick}
+              showGapAnalysis={showGapAnalysis}
+              gapCoveredIds={gapResult?.coveredIds}
+              gapUncoveredIds={gapResult?.uncoveredIds}
+              gapClusters={gapResult?.clusters ?? []}
+              coverageRadiusKm={coverageRadius}
             />
+          )}
+
+          {/* ── Draw-mode floating panel ── */}
+          {drawMode && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 12,
+                left: 12,
+                background: '#1e293b',
+                border: '1px solid #3b82f6',
+                borderRadius: 10,
+                padding: '12px 14px',
+                zIndex: 1000,
+                width: 230,
+                boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+              }}
+            >
+              <div style={{ fontWeight: 700, fontSize: 13, color: '#60a5fa', marginBottom: 8 }}>
+                ✏ Drawing Route
+              </div>
+              <input
+                placeholder="Route name (e.g. North Villages)"
+                value={newRouteName}
+                onChange={(e) => setNewRouteName(e.target.value)}
+                style={inputStyle}
+              />
+              <input
+                placeholder="Vehicle / driver (optional)"
+                value={newRouteVehicle}
+                onChange={(e) => setNewRouteVehicle(e.target.value)}
+                style={{ ...inputStyle, marginTop: 6 }}
+              />
+              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                {ROUTE_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setNewRouteColor(c)}
+                    title={c}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: c,
+                      border: newRouteColor === c ? '3px solid #fff' : '2px solid transparent',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  />
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>
+                {drawingWaypoints.length === 0
+                  ? 'Click on map to add stops'
+                  : `${drawingWaypoints.length} stop${drawingWaypoints.length !== 1 ? 's' : ''} added`}
+              </div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                <button
+                  onClick={saveRoute}
+                  disabled={savingRoute || drawingWaypoints.length < 2}
+                  style={{
+                    flex: 1,
+                    background: drawingWaypoints.length < 2 ? '#1e3a5f' : '#1d4ed8',
+                    border: 'none',
+                    color: '#fff',
+                    borderRadius: 6,
+                    padding: '6px 0',
+                    cursor: drawingWaypoints.length < 2 ? 'not-allowed' : 'pointer',
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  {savingRoute ? 'Saving…' : '✓ Save'}
+                </button>
+                <button
+                  onClick={() => {
+                    if (drawingWaypoints.length > 0) {
+                      setDrawingWaypoints((prev) => prev.slice(0, -1))
+                    }
+                  }}
+                  disabled={drawingWaypoints.length === 0}
+                  style={{
+                    background: '#334155',
+                    border: 'none',
+                    color: '#f1f5f9',
+                    borderRadius: 6,
+                    padding: '6px 8px',
+                    cursor: drawingWaypoints.length === 0 ? 'not-allowed' : 'pointer',
+                    fontSize: 12,
+                  }}
+                  title="Undo last stop"
+                >
+                  ↩
+                </button>
+                <button
+                  onClick={() => {
+                    setDrawMode(false)
+                    setDrawingWaypoints([])
+                  }}
+                  style={{
+                    background: '#334155',
+                    border: 'none',
+                    color: '#f1f5f9',
+                    borderRadius: 6,
+                    padding: '6px 8px',
+                    cursor: 'pointer',
+                    fontSize: 12,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Gap analysis results card ── */}
+          {showGapAnalysis && gapResult && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                background: '#1e293b',
+                border: '1px solid #7c3aed',
+                borderRadius: 10,
+                padding: '12px 14px',
+                zIndex: 1000,
+                width: 210,
+                boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+                fontSize: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 8,
+                }}
+              >
+                <div style={{ fontWeight: 700, color: '#a855f7', fontSize: 13 }}>
+                  🔍 Gap Analysis
+                </div>
+                <button
+                  onClick={() => { setShowGapAnalysis(false); setGapResult(null) }}
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16, padding: 0 }}
+                >
+                  ×
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: '#cbd5e1' }}>
+                <ResultRow label="Farmers on map" value={String(gapResult.totalMapped)} />
+                <ResultRow label="✓ Covered" value={String(gapResult.coveredIds.size)} color="#22c55e" />
+                <ResultRow label="⚠ Uncovered" value={String(gapResult.uncoveredIds.size)} color="#facc15" />
+                <ResultRow label="Clusters found" value={String(gapResult.clusters.length)} color="#a855f7" />
+                <ResultRow label="Radius used" value={`${coverageRadius} km`} />
+              </div>
+              {gapResult.clusters.length > 0 && (
+                <div style={{ marginTop: 10, borderTop: '1px solid #334155', paddingTop: 8 }}>
+                  <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>
+                    Suggested new stops:
+                  </div>
+                  {gapResult.clusters.slice(0, 5).map((c, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        fontSize: 11,
+                        color: '#cbd5e1',
+                        padding: '3px 0',
+                        borderBottom: '1px solid #1e2d48',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>
+                        <span style={{ color: '#a855f7' }}>#{i + 1}</span>{' '}
+                        {c.farmerIds.length} farmers
+                      </span>
+                      <span style={{ color: '#64748b' }}>
+                        {c.nearestRouteDistKm > 0 ? `${c.nearestRouteDistKm} km away` : 'No route'}
+                      </span>
+                    </div>
+                  ))}
+                  {gapResult.clusters.length > 5 && (
+                    <div style={{ fontSize: 10, color: '#475569', marginTop: 4 }}>
+                      +{gapResult.clusters.length - 5} more clusters on map
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Selected farmer info overlay (bottom-right) */}
@@ -679,4 +1170,25 @@ const centeredStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   background: '#0f172a',
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: '#0f172a',
+  border: '1px solid #334155',
+  color: '#f1f5f9',
+  padding: '6px 8px',
+  borderRadius: 6,
+  fontSize: 12,
+  boxSizing: 'border-box',
+  outline: 'none',
+}
+
+function ResultRow({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <span style={{ color: '#64748b' }}>{label}</span>
+      <span style={{ fontWeight: 700, color: color ?? '#f1f5f9' }}>{value}</span>
+    </div>
+  )
 }
