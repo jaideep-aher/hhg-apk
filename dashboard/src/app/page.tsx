@@ -283,53 +283,6 @@ export default function Page() {
           </Btn>
 
           <Btn
-            active={showHeatmap}
-            activeColor="#7c3aed"
-            title="Toggle density heatmap overlay"
-            onClick={() => setShowHeatmap((v) => !v)}
-          >
-            🔥 Heatmap
-          </Btn>
-
-          <Btn
-            active={showRoutes}
-            activeColor="#1d4ed8"
-            title="Toggle vehicle route overlays"
-            onClick={() => {
-              setShowRoutes((v) => !v)
-              setShowRoutesPanel(true)
-            }}
-          >
-            🚛 Routes {routes.length > 0 && `(${routes.length})`}
-          </Btn>
-
-          <Btn
-            active={showGapAnalysis}
-            activeColor="#6b21a8"
-            title="Find uncovered areas — run gap analysis"
-            onClick={() => {
-              if (routes.length === 0) {
-                setShowRoutesPanel(true)
-                setShowPanel(true)
-                return
-              }
-              if (showGapAnalysis) {
-                setShowGapAnalysis(false)
-                setGapResult(null)
-              } else {
-                runGap()
-              }
-            }}
-          >
-            🔍 Gap Analysis
-            {gapResult && (
-              <span style={{ marginLeft: 4, color: '#facc15' }}>
-                {gapResult.uncoveredIds.size}↑
-              </span>
-            )}
-          </Btn>
-
-          <Btn
             title="Toggle farmer list panel"
             onClick={() => setShowPanel((v) => !v)}
           >
@@ -353,6 +306,130 @@ export default function Page() {
           </Link>
         </div>
       </header>
+
+      {/* ── Map tools toolbar ── */}
+      <div
+        style={{
+          background: '#162032',
+          borderBottom: '1px solid #334155',
+          padding: '7px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          flexShrink: 0,
+          flexWrap: 'wrap',
+        }}
+      >
+        <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginRight: 4 }}>
+          MAP TOOLS
+        </span>
+
+        {/* Routes toggle */}
+        <button
+          onClick={() => { setShowRoutes((v) => !v); setShowRoutesPanel(true) }}
+          title="Show/hide vehicle routes"
+          style={{
+            background: showRoutes ? '#1d4ed8' : '#1e293b',
+            border: `1px solid ${showRoutes ? '#3b82f6' : '#334155'}`,
+            color: '#f1f5f9',
+            padding: '5px 14px',
+            borderRadius: 7,
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          🚛 Routes
+          {routes.length > 0 && (
+            <span
+              style={{
+                background: showRoutes ? '#3b82f6' : '#334155',
+                borderRadius: 10,
+                padding: '1px 7px',
+                fontSize: 11,
+              }}
+            >
+              {routes.length}
+            </span>
+          )}
+        </button>
+
+        {/* Gap analysis */}
+        <button
+          onClick={() => {
+            if (routes.length === 0) { setShowRoutesPanel(true); setShowPanel(true); return }
+            if (showGapAnalysis) { setShowGapAnalysis(false); setGapResult(null) }
+            else runGap()
+          }}
+          title="Find farmers not covered by any route"
+          style={{
+            background: showGapAnalysis ? '#6b21a8' : '#1e293b',
+            border: `1px solid ${showGapAnalysis ? '#a855f7' : '#334155'}`,
+            color: '#f1f5f9',
+            padding: '5px 14px',
+            borderRadius: 7,
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          🔍 Gap Analysis
+          {gapResult && (
+            <span
+              style={{
+                background: '#facc15',
+                color: '#1a1a1a',
+                borderRadius: 10,
+                padding: '1px 7px',
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              {gapResult.uncoveredIds.size} uncovered
+            </span>
+          )}
+        </button>
+
+        <div style={{ width: 1, background: '#334155', alignSelf: 'stretch', margin: '0 4px' }} />
+
+        {/* Heatmap (keep here too, it's a map tool) */}
+        <button
+          onClick={() => setShowHeatmap((v) => !v)}
+          title="Toggle usage density heatmap"
+          style={{
+            background: showHeatmap ? '#4c1d95' : '#1e293b',
+            border: `1px solid ${showHeatmap ? '#7c3aed' : '#334155'}`,
+            color: '#f1f5f9',
+            padding: '5px 14px',
+            borderRadius: 7,
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 600,
+          }}
+        >
+          🔥 Heatmap
+        </button>
+
+        {drawMode && (
+          <span
+            style={{
+              marginLeft: 8,
+              color: '#60a5fa',
+              fontSize: 12,
+              fontWeight: 600,
+              animation: 'none',
+            }}
+          >
+            ✏ Draw mode active — click map to place stops
+          </span>
+        )}
+      </div>
 
       {/* ── Legend ── */}
       <div
