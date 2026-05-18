@@ -121,6 +121,7 @@ function requireApmc(res) {
 // DB, so a future seed change can't silently reshuffle the top of the list.
 router.get('/markets', async (_req, res) => {
   if (!requireApmc(res)) return;
+  res.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
   try {
     const { rows } = await apmc.query(
       `SELECT m.id, m.slug,
@@ -156,6 +157,7 @@ router.get('/markets', async (_req, res) => {
 // Optional ?category=vegetable|fruit|cereal|pulse|oilseed|fibre|spice|cash
 router.get('/commodities', async (req, res) => {
   if (!requireApmc(res)) return;
+  res.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
   try {
     const cat = (req.query.category || '').toString().trim();
     const params = [];
@@ -193,6 +195,7 @@ router.get('/prices', async (req, res) => {
     return res.status(400).json({ error: 'market and commodity are required' });
   }
 
+  res.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=3600');
   try {
     const { rows } = await apmc.query(
       `SELECT
@@ -233,6 +236,7 @@ router.get('/today', async (req, res) => {
   const marketSlug = (req.query.market || '').toString().trim().toLowerCase();
   if (!marketSlug) return res.status(400).json({ error: 'market is required' });
 
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
   try {
     const { rows } = await apmc.query(
       `SELECT DISTINCT ON (c.id)
@@ -272,6 +276,7 @@ router.get('/best', async (req, res) => {
   const days = Math.max(1, Math.min(7, parseInt(req.query.days, 10) || 1));
   if (!commoditySlug) return res.status(400).json({ error: 'commodity is required' });
 
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
   try {
     // APMC rows + Hundekari lookup run in parallel — the Hundekari query
     // hits a different DB (RDS) and the two don't depend on each other.

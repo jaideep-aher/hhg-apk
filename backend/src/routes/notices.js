@@ -18,6 +18,7 @@ const router = Router();
  *       (max 70 chars) so the Android model's `title` field is always populated.
  */
 router.get('/', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
   try {
     const result = await pool.query(
       `SELECT

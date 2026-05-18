@@ -14,6 +14,7 @@ const router = Router();
  *   vegetables   — id, name_eng VARCHAR, name_mar VARCHAR
  */
 router.get('/hundekari', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=3600');
   try {
     const result = await pool.query(
       `SELECT

@@ -1,5 +1,6 @@
 "use server";
 import { Pool } from "@neondatabase/serverless";
+import { unstable_cache } from "next/cache";
 import { groupSimilarItems } from "@/lib/grouping";
 
 const CONNECTION_STRING = process.env.NEON_DB_CONNECTION_STRING;
@@ -29,30 +30,30 @@ const formatDateLabel = (dateInput, interval) => {
   return date.toLocaleDateString("mr-IN", { day: "numeric", month: "short" });
 };
 
-// --- 1. Fetch Items from DB ---
-export const fetchItemOptions = async () => {
-  try {
-    const client = await getPool().connect();
-    // Fetch distinct items and their usage count
-    const result = await client.query(`
-      SELECT item as name, COUNT(*) as count 
-      FROM entry 
-      GROUP BY item 
-      ORDER BY count DESC
-    `);
-    client.release();
-
-    // Use existing utility to group fuzzy names (e.g. "Tomato" & "tomato")
-
-    return groupSimilarItems(result.rows);
-  } catch (error) {
-    console.error("Database Error (fetchItemOptions):", error);
-    return [];
-  }
-};
+const _fetchItemOptions = unstable_cache(
+  async () => {
+    try {
+      const client = await getPool().connect();
+      const result = await client.query(`
+        SELECT item as name, COUNT(*) as count
+        FROM entry
+        GROUP BY item
+        ORDER BY count DESC
+      `);
+      client.release();
+      return groupSimilarItems(result.rows);
+    } catch (error) {
+      console.error("Database Error (fetchItemOptions):", error);
+      return [];
+    }
+  },
+  ["agrisight_item_options_v1"],
+  { revalidate: 3600, tags: ["agrisight_item_options"] }
+);
+export const fetchItemOptions = async () => _fetchItemOptions();
 
 // --- 2. Fetch Harvest Analysis (Best Months) from DB ---
-export const fetchHarvestAnalysis = async (itemName) => {
+const _fetchHarvestAnalysisImpl = async (itemName) => {
   try {
     const client = await getPool().connect();
 
@@ -160,8 +161,14 @@ export const fetchHarvestAnalysis = async (itemName) => {
   }
 };
 
+const _fetchHarvestAnalysis = unstable_cache(_fetchHarvestAnalysisImpl, ["agrisight_harvest_v1"], {
+  revalidate: 3600,
+  tags: ["agrisight_harvest"],
+});
+export const fetchHarvestAnalysis = async (itemName) => _fetchHarvestAnalysis(itemName);
+
 // --- 3. Fetch Market Trends from DB ---
-export const fetchMarketTrends = async (
+const _fetchMarketTrendsImpl = async (
   itemName,
   startDate,
   endDate,
@@ -304,3 +311,10 @@ export const fetchMarketTrends = async (
     };
   }
 };
+
+const _fetchMarketTrends = unstable_cache(_fetchMarketTrendsImpl, ["agrisight_trends_v1"], {
+  revalidate: 1800,
+  tags: ["agrisight_trends"],
+});
+export const fetchMarketTrends = async (itemName, startDate, endDate, interval) =>
+  _fetchMarketTrends(itemName, startDate, endDate, interval);
