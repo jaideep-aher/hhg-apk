@@ -1,66 +1,41 @@
 "use server";
 import { Pool } from "pg";
+import { unstable_cache } from "next/cache";
 import "dotenv/config";
 
-/**
- * Executes a given SQL query against the database.
- * @param {string} query - The SQL query string.
- * @param {Array<any>} [values=[]] - An array of values to replace placeholders in the query.
- * @returns {Promise<Array<Object>>} A promise resolving to an array of objects representing rows returned by the query.
- */
-async function runQuery(query, values = []) {
-  if (!process.env.DATABASE_URLR) {
-    console.error("Database connection string (DATABASE_URL) is not defined");
-    throw new Error(
-      "Database configuration error: DATABASE_URL is not defined"
-    );
+let pool = null;
+
+function getPool() {
+  if (!pool) {
+    if (!process.env.DATABASE_URLR) {
+      throw new Error(
+        "Database configuration error: DATABASE_URLR is not defined"
+      );
+    }
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URLR,
+      ssl: { rejectUnauthorized: false },
+      max: 5,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+    });
+    pool.on("error", (err) => {
+      console.error("Postgres pool error:", err.message);
+    });
   }
+  return pool;
+}
 
-  console.log(
-    "Connecting to database with connection string:",
-    process.env.DATABASE_URLR.replace(/:([^:]+)@/, ":***@")
-  ); // Hide password in logs
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URLR,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-    connectionTimeoutMillis: 5000, // 5 seconds timeout
-    idleTimeoutMillis: 5000,
-  });
-
-  const client = await pool.connect().catch((err) => {
-    console.error("Failed to connect to database:", err);
-    throw new Error(`Database connection failed: ${err.message}`);
-  });
-
+async function runQuery(query, values = []) {
+  const client = await getPool().connect();
   try {
-    console.log("Executing query:", query);
-    console.log("With values:", values);
-
-    const start = Date.now();
     const result = await client.query(query, values);
-    const duration = Date.now() - start;
-
-    console.log(
-      `Query executed in ${duration}ms, returned ${result.rowCount} rows`
-    );
     return result.rows;
   } catch (error) {
-    console.error("Database query error:", {
-      error: error.message,
-      query: query,
-      values: values,
-      stack: error.stack,
-    });
+    console.error("Database query error:", error.message);
     throw new Error(`Query failed: ${error.message}`);
   } finally {
-    try {
-      client.release();
-    } catch (releaseError) {
-      console.error("Error releasing database client:", releaseError);
-    }
+    client.release();
   }
 }
 
@@ -205,20 +180,21 @@ async function farmerExists(uid) {
  * @example const vendorRates = await getVendorItemRatesForItem("Tomato");
  *
  */
-async function getVendorItemRatesForItem(item) {
-  try {
+const _getVendorItemRatesForItem = unstable_cache(
+  async (item) => {
     const query = `
       SELECT date, vendorName, item, highest_rate
       FROM vendor_item_rates
       WHERE item = $1 AND date >= CURRENT_DATE - INTERVAL '5 Days' AND date <= CURRENT_DATE
       ORDER BY date, highest_rate DESC
     `;
-    const result = await runQuery(query, [item]);
-    return result;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+    return runQuery(query, [item]);
+  },
+  ["vendor_item_rates_v1"],
+  { revalidate: 600, tags: ["vendor_item_rates"] }
+);
+async function getVendorItemRatesForItem(item) {
+  return _getVendorItemRatesForItem(item);
 }
 
 /**
@@ -228,18 +204,19 @@ async function getVendorItemRatesForItem(item) {
  * @throws {Error} An error is thrown if the query fails.
  * @example const items = await getAllItems();
  */
-async function getAllItems() {
-  try {
+const _getAllItems = unstable_cache(
+  async () => {
     const query = `
       SELECT DISTINCT item, COUNT(item) as count
       FROM vendor_item_rates where date >= CURRENT_DATE - INTERVAL '5 Days' AND date <= CURRENT_DATE GROUP BY item ORDER BY count DESC;
     `;
-    const result = await runQuery(query, []);
-    return result;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+    return runQuery(query, []);
+  },
+  ["all_items_v1"],
+  { revalidate: 3600, tags: ["all_items"] }
+);
+async function getAllItems() {
+  return _getAllItems();
 }
 
 /**
@@ -249,9 +226,8 @@ async function getAllItems() {
  * @throws {Error} An error is thrown if the query fails.
  * @example const ads = await getAllAds();
  */
-async function getAllAds() {
-  try {
-    // join with localVyapari to get the name of the vyapari
+const _getAllAds = unstable_cache(
+  async () => {
     const query = `
       SELECT advId, item, requiredWeight, askingPrice, requiredDate, status, description, name as vyapariName
       FROM advertisement
@@ -259,12 +235,13 @@ async function getAllAds() {
       WHERE status IN ('Active', 'Pending')
       ORDER BY requiredDate;
     `;
-    const result = await runQuery(query, []);
-    return result;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+    return runQuery(query, []);
+  },
+  ["all_ads_v1"],
+  { revalidate: 300, tags: ["all_ads"] }
+);
+async function getAllAds() {
+  return _getAllAds();
 }
 
 // async function getMarketRates(market, vegetableId) {
@@ -291,29 +268,28 @@ async function getAllAds() {
  * @param {number} vegetableId - The vegetable ID.
  * @returns {Promise<Array<Object>>} A promise resolving to an array of objects representing the market rates.
  */
-async function getMarketRates(market, vegetableId) {
-  try {
+const _getMarketRates = unstable_cache(
+  async (market, vegetableId) => {
     market = market.toLowerCase();
     const query = `
-      SELECT 
-          date, 
-          COALESCE(${market}_min, 0) AS ${market}Min, 
-          COALESCE(${market}_max, 0) AS ${market}Max, 
+      SELECT
+          date,
+          COALESCE(${market}_min, 0) AS ${market}Min,
+          COALESCE(${market}_max, 0) AS ${market}Max,
           COALESCE(${market}_avg, 0) AS ${market}Avg
       FROM market_rates
-      WHERE vegetable_id = $1 
-        AND date >= CURRENT_DATE - INTERVAL '7 Days' 
+      WHERE vegetable_id = $1
+        AND date >= CURRENT_DATE - INTERVAL '7 Days'
         AND date <= CURRENT_DATE
       ORDER BY date;
     `;
-
-    const result = await runQuery(query, [vegetableId]);
-    console.log(result);
-    return result;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+    return runQuery(query, [vegetableId]);
+  },
+  ["market_rates_v1"],
+  { revalidate: 600, tags: ["market_rates"] }
+);
+async function getMarketRates(market, vegetableId) {
+  return _getMarketRates(market, vegetableId);
 }
 
 /**
@@ -321,45 +297,44 @@ async function getMarketRates(market, vegetableId) {
  * @async
  * @returns {Promise<Array<Object>>} A promise resolving to an array of objects representing the daag.
  */
-async function getAllBags() {
-  try {
+const _getAllBags = unstable_cache(
+  async () => {
     const query = `
-      SELECT 
-          date, 
+      SELECT
+          date,
           sum(quantity) as bags
       FROM entry
       WHERE date = CURRENT_DATE
       GROUP BY date
       ORDER BY date;
     `;
-
-    const result = await runQuery(query, []);
-    console.log(result);
-    return result;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+    return runQuery(query, []);
+  },
+  ["all_bags_v1"],
+  { revalidate: 300, tags: ["all_bags"] }
+);
+async function getAllBags() {
+  return _getAllBags();
 }
 
-async function getNotificationsForFarmers() {
-  try {
+const _getNotificationsForFarmers = unstable_cache(
+  async () => {
     const query = `
-      SELECT 
-      message_id, 
-      message, 
-      active_date, 
-      customer_type
-    FROM whatsapp_messages
-    WHERE active_date >= CURRENT_DATE
+      SELECT
+        message_id,
+        message,
+        active_date,
+        customer_type
+      FROM whatsapp_messages
+      WHERE active_date >= CURRENT_DATE
     `;
-
-    const result = await runQuery(query);
-    return result;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+    return runQuery(query);
+  },
+  ["notifications_for_farmers_v1"],
+  { revalidate: 300, tags: ["notifications_for_farmers"] }
+);
+async function getNotificationsForFarmers() {
+  return _getNotificationsForFarmers();
 }
 
 export {
